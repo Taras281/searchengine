@@ -1,4 +1,27 @@
-# example values
+server:
+ port: 8080
+spring:
+ datasource:
+   username: root
+   password: Qwer2Qwer
+   url:
+    jdbc:mysql://localhost:3306/search_engine?useSSL=false&requir
+    eSSL=false&allowPublicKeyRetrieval=true
+   driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+ jpa:
+  properties:
+   hibernate:
+   dialect: org.hibernate.dialect.MySQL8Dialect
+   ddl-auto: create-drop
+   show-sql: true
+  generate-ddl: true
+
+---
+
+
+---
 
 indexing-settings:
   sites:
