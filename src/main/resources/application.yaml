@@ -14,9 +14,12 @@ spring:
   properties:
    hibernate:
    dialect: org.hibernate.dialect.MySQL8Dialect
-   ddl-auto: create-drop
+   ddl-auto: create-update
    show-sql: true
   generate-ddl: true
+  show-sql: true
+
+
 
 ---
 
@@ -31,3 +34,22 @@ indexing-settings:
       name: Skillbox
     - url: https://www.playback.ru
       name: PlayBack.Ru
+    - url: https:/TarasSite.org
+      name: TarasSite
+
+---
+indexing-agent:
+
+         userAgent: Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6
+         referrer: http://www.google.com
+
+---
+logging:
+  file:
+    name: Log\logging
+
+
+
+
+
+

@@ -4,6 +4,8 @@ import com.sun.istack.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 
@@ -11,20 +13,18 @@ import javax.persistence.*;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name="page", indexes={@javax.persistence.Index(columnList = "path", name = "index_path")})
-
+@Table(name="page")
 public class Page {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
     private int id;
 
-    //@Column(columnDefinition = "INT", name="site_id")
-    //@NotNull
     @ManyToOne(cascade = CascadeType.ALL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Site site;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "TEXT NOT NULL, INDEX index_path (path(50))")
     private String path;
 
     @Column(nullable = false)
@@ -32,4 +32,8 @@ public class Page {
 
     @Column(columnDefinition = "MEDIUMTEXT", nullable = false)
     private String content;
+
+    @Column(columnDefinition = "TEXT", nullable = false)
+    private String thread;
+
 }
