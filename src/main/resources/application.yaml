@@ -5,19 +5,35 @@ spring:
    username: root
    password: Qwer2Qwer
    url:
-    jdbc:mysql://localhost:3306/search_engine?useSSL=false&requir
-    eSSL=false&allowPublicKeyRetrieval=true
+        jdbc:mysql://localhost:3306/search_engine?useSSL=false&requir
+        eSSL=false&allowPublicKeyRetrieval=true
    driver-class-name: com.mysql.cj.jdbc.Driver
+
+     # net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+
+
+
+
+   #
+     
+
 
 
  jpa:
   properties:
    hibernate:
-   dialect: org.hibernate.dialect.MySQL8Dialect
+   dialect: org.hibernate.dialect.MySQL5Dialect
    ddl-auto: create-update
    show-sql: true
+
+
   generate-ddl: true
   show-sql: true
+
+
+
+
+
 
 
 
@@ -28,14 +44,14 @@ spring:
 
 indexing-settings:
   sites:
-    - url: https://www.lenta.ru
-      name: Лента.ру
-    - url: https://www.skillbox.ru
-      name: Skillbox
+    - url: https://nikoartgallery.com/
+      name: Galerey Nikola
     - url: https://www.playback.ru
       name: PlayBack.Ru
-    - url: https:/TarasSite.org
-      name: TarasSite
+    - url: https://et-cetera.ru/mobile/
+      name: Theatre
+
+
 
 ---
 indexing-agent:
@@ -43,12 +59,16 @@ indexing-agent:
          userAgent: Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6
          referrer: http://www.google.com
 
+
+
+
 ---
 logging:
   file:
     name: Log\logging
 
 
+---
 
 
 

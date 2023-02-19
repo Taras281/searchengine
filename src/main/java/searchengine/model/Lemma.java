@@ -3,34 +3,32 @@ package searchengine.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
-import java.util.List;
 
 @Data
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name="page")
-public class Page {
+@Entity
+@DynamicUpdate
+@Table(name="lemma")
+public class Lemma {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
-    private long id;
+    private int id;
 
-    @ManyToOne(cascade = CascadeType.MERGE)
+    @ManyToOne(cascade = CascadeType.ALL)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Site site;
+    private searchengine.model.Site site;
 
-    @Column(columnDefinition = "TEXT NOT NULL, INDEX path (path(50))")
-    private String path;
+    @Column(columnDefinition = "VARCHAR(255)", nullable = false)
+    private String lemma;
 
-    @Column(nullable = false)
-    private int code;
-
-    @Column(columnDefinition = "MEDIUMTEXT", nullable = false)
-    private String content;
+    @Column(columnDefinition = "INT", nullable = false)
+    private int frequency;
 
 }

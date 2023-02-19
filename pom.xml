@@ -12,7 +12,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
-
+    <repositories> <repository> <id>skillbox-gitlab</id> <url>https://gitlab.skillbox.ru/api/v4/projects/263574/packages/maven</url> </repository> </repositories>
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -57,21 +57,57 @@
             <artifactId>spring-boot-test-autoconfigure</artifactId>
             <version>3.0.1</version>
         </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>3.8.2</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-        </dependency>
+
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.bgee.log4jdbc-log4j2/log4jdbc-log4j2-jdbc4.1 -->
+        <dependency>
+            <groupId>org.bgee.log4jdbc-log4j2</groupId>
+            <artifactId>log4jdbc-log4j2-jdbc4.1</artifactId>
+            <version>1.16</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.apache.lucene.morphology</groupId> <artifactId>morph</artifactId> <version>1.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene.analysis</groupId> <artifactId>morphology</artifactId> <version>1.5</version>
+        </dependency>
+        <dependency> <groupId>org.apache.lucene.morphology</groupId> <artifactId>dictionary-reader</artifactId> <version>1.5</version>
+        </dependency>
+        <dependency> <groupId>org.apache.lucene.morphology</groupId> <artifactId>english</artifactId> <version>1.5</version>
+        </dependency>
+        <dependency> <groupId>org.apache.lucene.morphology</groupId> <artifactId>russian</artifactId> <version>1.5</version>
+    </dependency>
+
 
     </dependencies>
+
+    <!-- include below build tag to your existing pom.xml  -->
+
+        <build>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>repackage</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </build>
+
+
+
 
 </project>

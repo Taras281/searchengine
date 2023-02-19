@@ -12,12 +12,9 @@
     </appenders>
     <loggers>
 
-        <logger name="filelogger" level="error">
-            <appender-ref ref="MyFile"/>
-        </logger>
-
-        <root level="info">
+        <root level="all">
             <appender-ref ref="Console"/>
+
         </root>
     </loggers>
 </configuration>
