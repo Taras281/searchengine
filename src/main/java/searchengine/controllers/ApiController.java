@@ -108,6 +108,7 @@ public class ApiController {
             indexingResponseOk.setResult(true);
             for(IndexingServiseImpl iis: listIndexingServiseImpl){
                 iis.stopIndexing();
+
             }
             tpe.shutdownNow();
             return new ResponseEntity<>(indexingResponseOk, HttpStatus.OK);
