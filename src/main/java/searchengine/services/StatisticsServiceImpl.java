@@ -53,8 +53,8 @@ public class StatisticsServiceImpl implements StatisticsService {
             DetailedStatisticsItem item = new DetailedStatisticsItem();
             item.setName(site.getName());
             item.setUrl(site.getUrl());
-
                 searchengine.model.Site siteModel = siteRepository.findByUrl(site.getUrl());
+                if(siteModel==null){continue;}
                 ArrayList<Page> pagesSite = pageReposytory.findAllBySiteId(siteModel);
                 int pages = pagesSite.size();
                 if(pages>0){

@@ -3,18 +3,21 @@ package searchengine.services;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import org.springframework.context.ApplicationContext;
-import searchengine.config.ApplicationContextHolder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
 import searchengine.config.USerAgent;
+import searchengine.dto.responce.IndexingResponse;
+import searchengine.dto.responce.IndexingResponseNotOk;
+import searchengine.dto.responce.IndexingResponseOk;
 import searchengine.model.Page;
 import searchengine.model.StatusEnum;
 import searchengine.reposytory.PageReposytory;
 import searchengine.reposytory.SiteRepository;
 
 import java.io.IOException;
-import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -22,24 +25,130 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-
-public class IndexingServiseImpl implements IndexingServise  {
-    private  int numberSiteApplicationProperties;
-
-    private SitesList sitesListFromProperties;
-    private USerAgent userAgent;
+@Service
+//@AllArgsConstructor
+public class IndexingServiseImpl  {
+    //@Autowired
     private SiteRepository siteRepository;
+    //@Autowired
     private PageReposytory pageReposytory;
-    private ForkJoinPool fjp;
-    public static AtomicBoolean recreating = new AtomicBoolean();
+    //@Autowired
+    private SitesList sitesListFromProperties;
+    //@Autowired
+    private USerAgent uSerAgent;
+    //@Autowired
+    private SitesList sitesList;
 
-    private long siteId;
-    private Site site;
 
-    private String marker;
-    private Set notEyetParsingLinkWhereStopedUser;
+    private boolean indexingState;
+    private ArrayList<SubClassIndexingServise> listIndexingServiseImpl;
+    private ExecutorService tpe;
+    private SubClassIndexingServise iis;
 
-    private ParserForkJoin task;
+
+    {
+        indexingState = false;
+    }
+    public IndexingServiseImpl(SiteRepository siteRepository, PageReposytory pageReposytory, SitesList sitesListFromProperties, USerAgent uSerAgent, SitesList sitesList) {
+        this.siteRepository = siteRepository;
+        this.pageReposytory = pageReposytory;
+        this.sitesListFromProperties = sitesListFromProperties;
+        this.uSerAgent = uSerAgent;
+        this.sitesList = sitesList;
+    }
+
+    public ResponseEntity<IndexingResponse> getStartResponse(){
+        if (!indexingState){
+            indexingState = true;
+            startIndexing();
+            return new ResponseEntity<>(creatResponse(true, !indexingState), HttpStatus.OK);
+        }
+        else{
+
+        }
+        return  new ResponseEntity<>(creatResponse(true, indexingState), HttpStatus.BAD_REQUEST);
+    }
+
+    private IndexingResponse creatResponse(boolean start, boolean indexingStarted){
+        IndexingResponseOk indexingResponseOk=null;
+        IndexingResponseNotOk indexingResponseNotOk = null;
+        if(start&&!indexingStarted){
+            indexingResponseOk = new IndexingResponseOk();
+            indexingResponseOk.setResult(true);
+            return indexingResponseOk;
+        }
+        else if (start&&indexingStarted){
+            indexingResponseNotOk = new IndexingResponseNotOk();
+            indexingResponseNotOk.setResult(false);
+            indexingResponseNotOk.setError("Индексация уже запущена");
+            return indexingResponseNotOk;
+        }
+        else if(!start&&indexingStarted){
+            indexingResponseOk = new IndexingResponseOk();
+            indexingResponseOk.setResult(true);
+            return indexingResponseOk;
+        }
+        else if (!start&&!indexingStarted){
+            indexingResponseNotOk = new IndexingResponseNotOk();
+            indexingResponseNotOk.setResult(false);
+            indexingResponseNotOk.setError("Индексация не запущена");
+        }
+        return indexingResponseNotOk;
+    }
+
+    public ResponseEntity<IndexingResponse> getStopIndexing() throws InterruptedException {
+        if(indexingState){
+            stopIndexing();
+            indexingState = false;
+            return new ResponseEntity<>(creatResponse(false, !indexingState), HttpStatus.OK);
+        }
+        else {
+            return new ResponseEntity<>(creatResponse(false, indexingState), HttpStatus.BAD_REQUEST);
+        }
+
+
+    }
+
+    private void startIndexing() {
+        listIndexingServiseImpl = new ArrayList<>();
+        tpe = Executors.newFixedThreadPool(sitesListFromProperties.getSites().size());
+        int countSite=1;
+        SubClassIndexingServise.recreating.set(true);
+        for(Site site: sitesList.getSites()){
+            iis = new SubClassIndexingServise();
+            iis.init(site, sitesListFromProperties, uSerAgent, siteRepository, pageReposytory, countSite);
+            listIndexingServiseImpl.add(iis);
+            countSite++;
+          }
+        for(SubClassIndexingServise scis: listIndexingServiseImpl){
+                tpe.execute(()->scis.startIndexing());
+
+        }
+
+    }
+    private void stopIndexing() throws InterruptedException {
+        for(SubClassIndexingServise iis: listIndexingServiseImpl){
+            iis.stopIndexing();
+        }
+
+        tpe.shutdownNow();
+    }
+    public class SubClassIndexingServise implements IndexingServise {
+        private  int numberSiteApplicationProperties;
+
+        private SitesList sitesListFromProperties;
+        private USerAgent userAgent;
+        private SiteRepository siteRepository;
+        private PageReposytory pageReposytory;
+        private ForkJoinPool fjp;
+        public static AtomicBoolean recreating = new AtomicBoolean();
+
+        private long siteId;
+        private Site site;
+
+        private String marker;
+        private Set notEyetParsingLinkWhereStopedUser;
+        private ParserForkJoin task;
 
     public void init(Site site, SitesList sitesList, USerAgent userAgent, SiteRepository siteRepository, PageReposytory pageReposytory, int numberSiteApplicationProperties){
         this.site = site;
@@ -48,17 +157,15 @@ public class IndexingServiseImpl implements IndexingServise  {
         this.siteRepository = siteRepository;
         this.pageReposytory=pageReposytory;
         this.siteId = numberSiteApplicationProperties;
-        System.out.println("Init indexingServise"  + Thread.currentThread().getName());
+        //System.out.println("Init indexingServise"  + Thread.currentThread().getName());
     }
-
     @Override
     public synchronized boolean startIndexing(){
          recreatingTableSiteAndTable();
          parsing(site.getUrl(), site);
-         System.out.println("+ Start parsing " + "numer site " + numberSiteApplicationProperties + " " + Thread.currentThread().getName());
+        // System.out.println("+ Start parsing " + "numer site " + numberSiteApplicationProperties + " " + Thread.currentThread().getName());
          return true;
     }
-
     @Override
     public boolean stopIndexing() throws InterruptedException {
         task.blockWorkForkJoin=true;
@@ -69,7 +176,9 @@ public class IndexingServiseImpl implements IndexingServise  {
     }
     private boolean parsing(String url, Site site) {
         searchengine.model.Site siteInBAse = returnModelSite(siteId, StatusEnum.INDEXING, getDataTime(), "", url, site.getName());
-        siteRepository.save(siteInBAse);
+        synchronized (siteRepository){
+            siteRepository.save(siteInBAse);
+        }
         marker = url;
         notEyetParsingLinkWhereStopedUser = new HashSet();
         task = new ParserForkJoin(url, siteInBAse, marker, notEyetParsingLinkWhereStopedUser);
@@ -85,7 +194,6 @@ public class IndexingServiseImpl implements IndexingServise  {
         System.out.println("YYYYYYYYYY fjp "+fjp.toString());
         return true;
     }
-
     private void recreatingTableSiteAndTable() {
         synchronized (recreating){
             if(recreating.get()){
@@ -107,7 +215,6 @@ public class IndexingServiseImpl implements IndexingServise  {
 
     }
 
-
     private searchengine.model.Site returnModelSite(long id, StatusEnum indexing, String dataTime, String error, String url, String nameSite) {
         searchengine.model.Site site = new searchengine.model.Site();
         site.setId(id);
@@ -117,18 +224,13 @@ public class IndexingServiseImpl implements IndexingServise  {
         site.setUrl(url);
         site.setName(nameSite);
         return site;
-
-
     }
-
     private String getDataTime() {
         Calendar cal = Calendar.getInstance();
         DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String result = formatter.format(cal.getTime());
         return result;
     }
-
-
     public class ParserForkJoin extends RecursiveTask<Set<String>>{
         private  Set<String> notEyetParsingLinkWhereStopedUser;
         String link;
@@ -316,7 +418,7 @@ public class IndexingServiseImpl implements IndexingServise  {
 
     }
 
-
+    }
 
 }
 

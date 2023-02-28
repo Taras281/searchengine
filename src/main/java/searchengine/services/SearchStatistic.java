@@ -1,6 +1,6 @@
 package searchengine.services;
 
-import searchengine.dto.search.SearchResponce;
+import searchengine.dto.responce.SearchResponce;
 
 public interface SearchStatistic {
     String query = null;

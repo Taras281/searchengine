@@ -8,7 +8,7 @@ import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import searchengine.dto.search.DetailedStatisticsSearch;
-import searchengine.dto.search.SearchResponce;
+import searchengine.dto.responce.SearchResponce;
 import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.reposytory.SiteRepository;

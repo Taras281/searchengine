@@ -5,10 +5,15 @@ import org.hibernate.query.Query;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.SitesList;
 import searchengine.config.USerAgent;
+import searchengine.dto.responce.IndexingResponse;
+import searchengine.dto.responce.IndexingResponseNotOk;
+import searchengine.dto.responce.IndexingResponseOk;
 import searchengine.model.Index;
 import searchengine.model.Lemma;
 import searchengine.model.Page;
@@ -54,8 +59,35 @@ public class LemmatizatorServiseImplTreeple implements LematizatorServise, Runna
     @Autowired
     USerAgent userAgent;
 
+    @Autowired
+    SitesList sitesList;
+
+    @Autowired
+    IndexingResponseNotOk indexingResponseNotOk;
+
+    @Autowired
+    IndexingResponseOk indexingResponseOk;
+
     public void setRewritePage(boolean rewritePage) {
         this.rewritePage = rewritePage;
+    }
+
+
+    public ResponseEntity<IndexingResponse> getResponse(String uri) {
+        if (uriContainsSiteList(uri))
+        {   this.setPathParsingLink(uri);
+            this.setRewritePage(true);
+            this.run();
+            indexingResponseOk.setResult(true);
+            return new ResponseEntity<>(indexingResponseOk, HttpStatus.OK);}
+        else{
+            indexingResponseNotOk.setError("Данная страница находится за пределами сайтов, " +
+                                            "указанных в конфигурационном файле");
+            return new ResponseEntity<>(indexingResponseNotOk, HttpStatus.BAD_REQUEST);
+       }
+     }
+    private boolean uriContainsSiteList(String uri) {
+        return sitesList.getSites().stream().map(l-> uri.contains(l.getUrl())).anyMatch(b->b==true);
     }
 
     private boolean rewritePage;
@@ -105,8 +137,6 @@ public class LemmatizatorServiseImplTreeple implements LematizatorServise, Runna
         entityManager.flush();
         lemmaReposytory.saveAll(listLemmaForSaveBase);
         indexReposytory.saveAll(indexFromBaseOptionTwoo);
-
-
     }
 
     private void delite(Page page) {
