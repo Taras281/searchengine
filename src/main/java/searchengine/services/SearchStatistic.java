@@ -1,14 +1,13 @@
 package searchengine.services;
 
-import searchengine.dto.responce.SearchResponce;
+import org.springframework.http.ResponseEntity;
 
 public interface SearchStatistic {
     String query = null;
     String  site = null;
     int  offset = 0;
     int  limit = 0;
-    SearchResponce getStatistics();
-
+    ResponseEntity getStatistics(String query, String site, String limit, String offset);
 
     void setQuery(String query);
     void setSite(String site);

@@ -6,9 +6,11 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import searchengine.dto.search.DetailedStatisticsSearch;
-import searchengine.dto.responce.SearchResponce;
+import searchengine.dto.search.SearchResponce;
 import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.reposytory.SiteRepository;
@@ -31,8 +33,14 @@ public class SearchStatisticImpl implements SearchStatistic{
     @Autowired
     SiteRepository siteRepository;
 
-    @Override
+
     public SearchResponce getStatistics() {
+        if(query.equals("")||query.matches("^[a-zA-Z]+$")){
+            SearchResponce responce = new SearchResponce();
+            responce.setResult(false);
+            responce.setError("Поисковый запрос должен содержать только РУССКИЕ!!! буквы");
+            return responce;
+        }
         search.setLimit(limit);
         search.setOffset(offset);
         search.setSite(site);
@@ -40,12 +48,11 @@ public class SearchStatisticImpl implements SearchStatistic{
         if(resultSearch==null){
             SearchResponce responce = new SearchResponce();
             responce.setResult(false);
+            responce.setData(getEmptyData());
             responce.setError("результаты не найдены");
             return responce;
         }
-        //TotalStatisticsSearch total = new TotalStatisticsSearch();
         int countPage = resultSearch.size();
-        //DetailedStatisticsSearch[] detailedStatisticsSearches = new DetailedStatisticsSearch[countPage];
         int start = offset>=resultSearch.size()?resultSearch.size()-1:offset;
         int dif = Math.abs(resultSearch.size()-start);
         int stop = limit>dif?dif:limit;
@@ -65,6 +72,18 @@ public class SearchStatisticImpl implements SearchStatistic{
         responce.setCount(countPage);
         responce.setData(detailedStatisticsSearches);
         return responce;
+    }
+
+    private DetailedStatisticsSearch[] getEmptyData() {
+        DetailedStatisticsSearch[] result = new DetailedStatisticsSearch[1];
+        DetailedStatisticsSearch item = new DetailedStatisticsSearch();
+        item.setSnippet(" ");
+        item.setTitle(" ");
+        item.setSiteName(" ");
+        item.setSite(" ");
+        item.setRelevance(0);
+        result[0]=item;
+        return result;
     }
 
     private String getSnippet(String content) {
@@ -168,5 +187,15 @@ public class SearchStatisticImpl implements SearchStatistic{
         }
         return title;
     }
+    @Override
+    public ResponseEntity getStatistics(String query, String site, String limit, String offset){
+        this.setLimit(Integer.parseInt(limit));
+        this.setSite(site);
+        this.setQuery(query);
+        this.setOffset(Integer.parseInt(offset));
+        SearchResponce responce = this.getStatistics();
+        return  new ResponseEntity(responce, HttpStatus.OK);
+    }
+
 
 }

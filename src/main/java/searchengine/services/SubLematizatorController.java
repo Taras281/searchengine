@@ -12,7 +12,7 @@ public class SubLematizatorController {
     private ArrayDeque<String> dequeLinksForLematizator;
     private ExecutorService es;
     ApplicationContext context;
-    LemmatizatorServiseImplTreeple lematizatorServise;
+    LemmatizatorServiсeImpl lematizatorServise;
     public static synchronized SubLematizatorController getInstance() {
         if (instance == null) {
             instance = new SubLematizatorController();
@@ -22,7 +22,7 @@ public class SubLematizatorController {
     SubLematizatorController(){
         dequeLinksForLematizator = new ArrayDeque<>(1000);
         context = ApplicationContextHolder.getApplicationContext();
-        lematizatorServise = context.getBean(LemmatizatorServiseImplTreeple.class);
+        lematizatorServise = context.getBean(LemmatizatorServiсeImpl.class);
         es = Executors.newFixedThreadPool(1);
     }
     public void addDeque(String url){
@@ -39,7 +39,7 @@ public class SubLematizatorController {
                 while (!dequeLinksForLematizator.isEmpty()){
                     lematizatorServise.setPathParsingLink(dequeLinksForLematizator.removeFirst());
                     lematizatorServise.setRewritePage(false);
-                    lematizatorServise.run();
+                    lematizatorServise.runing();
                 }
             }
         });
