@@ -3,7 +3,6 @@ package searchengine.services;
 import searchengine.model.Page;
 
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Map;
 
 public class MyComparatorRolevant implements Comparator<Map.Entry<Page, float[]>> {

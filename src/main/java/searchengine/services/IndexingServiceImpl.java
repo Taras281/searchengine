@@ -6,6 +6,7 @@ import org.jsoup.select.Elements;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import searchengine.config.Label;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
 import searchengine.config.USerAgent;
@@ -47,12 +48,14 @@ public class IndexingServiceImpl implements IndexingService {
     {
         indexingState = false;
     }
-    public IndexingServiceImpl(SiteRepository siteRepository, PageReposytory pageReposytory, SitesList sitesListFromProperties, USerAgent uSerAgent, SitesList sitesList) {
+    private Label myLabel;
+    public IndexingServiceImpl(SiteRepository siteRepository, PageReposytory pageReposytory, SitesList sitesListFromProperties, USerAgent uSerAgent, SitesList sitesList, Label label) {
         this.siteRepository = siteRepository;
         this.pageReposytory = pageReposytory;
         this.sitesListFromProperties = sitesListFromProperties;
         this.uSerAgent = uSerAgent;
         this.sitesList = sitesList;
+        this.myLabel = label;
     }
 
     public ResponseEntity<IndexingResponse> getStartResponse(){
@@ -78,7 +81,7 @@ public class IndexingServiceImpl implements IndexingService {
         else if (start&&indexingStarted){
             indexingResponseNotOk = new IndexingResponseNotOk();
             indexingResponseNotOk.setResult(false);
-            indexingResponseNotOk.setError("Индексация уже запущена");
+            indexingResponseNotOk.setError(myLabel.getIndexingStarted());
             return indexingResponseNotOk;
         }
         else if(!start&&indexingStarted){
@@ -89,7 +92,7 @@ public class IndexingServiceImpl implements IndexingService {
         else if (!start&&!indexingStarted){
             indexingResponseNotOk = new IndexingResponseNotOk();
             indexingResponseNotOk.setResult(false);
-            indexingResponseNotOk.setError("Индексация не запущена");
+            indexingResponseNotOk.setError(myLabel.getIndexingNotStarted());
         }
         return indexingResponseNotOk;
     }
@@ -318,9 +321,9 @@ public class IndexingServiceImpl implements IndexingService {
 
 
         public boolean contaning(String absLink, String marker) {
-            if (absLink == "/www.playback") {
+            /*if (absLink == "/www.playback") {
                 int y = 0;
-            }
+            }*/
 
             if (marker.contains("www.")) {
                 String[] s = marker.split("www.");
@@ -352,7 +355,7 @@ public class IndexingServiceImpl implements IndexingService {
                 for(String url: notEyetParsingLinkWhereStopedUser){
                     if(dontContained(url)){
                         pageReposytory.save(new Page((int)pageReposytory.count()+1, site, url,
-                                418, "FAILED Индексация остановлена пользователем"));
+                                418, myLabel.getIndexingStopedUser()));
                     }
                 }
             }
@@ -361,7 +364,7 @@ public class IndexingServiceImpl implements IndexingService {
         setStatusSiteINDEXED(site);
         }
 
-        public void setStatusSiteINDEXED(searchengine.model.Site site){
+        private void setStatusSiteINDEXED(searchengine.model.Site site){
             synchronized (siteRepository){
                 site.setStatus(StatusEnum.INDEXED);
                 siteRepository.save(site);

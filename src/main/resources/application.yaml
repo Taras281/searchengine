@@ -29,16 +29,6 @@ spring:
   generate-ddl: true
   show-sql: true
 
-
-
-
-
-
-
-
----
-
-
 ---
 
 indexing-settings:
@@ -54,11 +44,8 @@ indexing-settings:
 
 ---
 indexing-agent:
-
          userAgent: Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6
          referrer: http://www.google.com
-
-
 
 
 ---
@@ -69,6 +56,11 @@ logging:
 
 ---
 
+my-labels:
+   indexingStarted: Индексация уже запущена
+   indexingNotStarted: Индексация еще не запущена
+   indexingStopedUser: Индексация остановлена пользователем
+   thisPageOutSite: Данная страница находится за пределами сайтов, указанных в конфигурационном файле
 
 
 

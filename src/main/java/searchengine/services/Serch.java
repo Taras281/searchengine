@@ -1,7 +1,6 @@
 package searchengine.services;
 
 import lombok.Data;
-import org.apache.lucene.analysis.CharArrayMap;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +12,8 @@ import searchengine.reposytory.IndexReposytory;
 import searchengine.reposytory.LemmaReposytory;
 import searchengine.reposytory.PageReposytory;
 import searchengine.reposytory.SiteRepository;
-
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.swing.*;
 import java.util.*;
 import java.util.stream.Collectors;
 

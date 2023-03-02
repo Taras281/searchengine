@@ -14,7 +14,6 @@ import searchengine.dto.search.SearchResponce;
 import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.reposytory.SiteRepository;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -34,7 +33,7 @@ public class SearchStatisticImpl implements SearchStatistic{
     SiteRepository siteRepository;
 
 
-    public SearchResponce getStatistics() {
+    public SearchResponce getStat() {
         if(query.equals("")||query.matches("^[a-zA-Z]+$")){
             SearchResponce responce = new SearchResponce();
             responce.setResult(false);
@@ -193,7 +192,7 @@ public class SearchStatisticImpl implements SearchStatistic{
         this.setSite(site);
         this.setQuery(query);
         this.setOffset(Integer.parseInt(offset));
-        SearchResponce responce = this.getStatistics();
+        SearchResponce responce = this.getStat();
         return  new ResponseEntity(responce, HttpStatus.OK);
     }
 
