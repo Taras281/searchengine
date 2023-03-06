@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 @Service
 @Data
 public class SearchStatisticImplPreparationResponse implements SearchStatistic{
-
     private String  query;
     private String  site;
     private int  offset;
