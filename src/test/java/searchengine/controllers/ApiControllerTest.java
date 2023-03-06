@@ -7,11 +7,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import searchengine.dto.responce.IndexingResponseNotOk;
 import searchengine.dto.responce.IndexingResponseOk;
 import searchengine.dto.responce.UriForPost;
 import searchengine.dto.search.SearchResponce;
-import searchengine.services.*;
+import searchengine.services.indexing.IndexingServiceImpl;
+import searchengine.services.lemmatization.LemmatizatorServiсeImpl;
+import searchengine.services.wordsearchresponse.SearchStatisticImplPreparationResponse;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -20,9 +21,9 @@ import static org.mockito.Mockito.*;
 class ApiControllerTest {
 
     @Mock
-    SearchStatisticImpl searchStatistic;
+    SearchStatisticImplPreparationResponse searchStatistic;
     @Mock
-    LematizatorServiсeImpl lematizatorServise;
+    LemmatizatorServiсeImpl lematizatorServise;
 
     @Mock
     IndexingServiceImpl indexingService;

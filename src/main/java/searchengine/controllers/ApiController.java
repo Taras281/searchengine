@@ -1,13 +1,15 @@
 package searchengine.controllers;
 
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import searchengine.dto.responce.*;
 import searchengine.dto.statistics.StatisticsResponse;
-import searchengine.services.*;
+import searchengine.services.indexing.IndexingService;
+import searchengine.services.lemmatization.LemmatizatorService;
+import searchengine.services.statistics.StatisticsService;
+import searchengine.services.wordsearchresponse.SearchStatistic;
 
 @RestController
 @RequestMapping("/api")
@@ -15,8 +17,8 @@ import searchengine.services.*;
 public class ApiController {
     private SearchStatistic searchStatistic;
     private IndexingService indexingServise;
-    private  LematizatorService lematizatorServise;
-    private  StatisticsService statisticsService;
+    private LemmatizatorService lematizatorServise;
+    private StatisticsService statisticsService;
 
     private  IndexingResponseNotOk indexingResponseNotOk;
 

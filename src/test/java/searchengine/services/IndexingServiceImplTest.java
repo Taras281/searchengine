@@ -1,6 +1,5 @@
 package searchengine.services;
 
-import org.apiguardian.api.API;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,6 +13,7 @@ import searchengine.config.SitesList;
 import searchengine.dto.responce.IndexingResponseNotOk;
 import searchengine.dto.responce.IndexingResponseOk;
 import searchengine.reposytory.SiteRepository;
+import searchengine.services.indexing.IndexingServiceImpl;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
