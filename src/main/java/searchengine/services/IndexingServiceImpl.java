@@ -125,6 +125,7 @@ public class IndexingServiceImpl implements IndexingService {
                 tpe.execute(()->scis.startIndexing());
 
         }
+        tpe.shutdown();
 
     }
     private void stopIndexing() throws InterruptedException {
