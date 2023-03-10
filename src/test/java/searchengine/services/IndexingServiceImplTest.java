@@ -12,8 +12,7 @@ import searchengine.config.Site;
 import searchengine.config.SitesList;
 import searchengine.dto.responce.IndexingResponseNotOk;
 import searchengine.dto.responce.IndexingResponseOk;
-import searchengine.reposytory.SiteRepository;
-import searchengine.services.indexing.IndexingServiceImpl;
+import searchengine.repository.SiteRepository;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;

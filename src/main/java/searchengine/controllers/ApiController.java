@@ -6,10 +6,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import searchengine.dto.responce.*;
 import searchengine.dto.statistics.StatisticsResponse;
-import searchengine.services.indexing.IndexingService;
-import searchengine.services.lemmatization.LemmatizatorService;
-import searchengine.services.statistics.StatisticsService;
-import searchengine.services.wordsearchresponse.SearchStatistic;
+import searchengine.services.IndexingService;
+import searchengine.lemmatization.LemmatizatorService;
+import searchengine.statistics.StatisticsService;
+import searchengine.wordsearchresponse.SearchStatistic;
 
 @RestController
 @RequestMapping("/api")

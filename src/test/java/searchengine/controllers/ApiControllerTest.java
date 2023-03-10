@@ -10,9 +10,9 @@ import org.springframework.http.ResponseEntity;
 import searchengine.dto.responce.IndexingResponseOk;
 import searchengine.dto.responce.UriForPost;
 import searchengine.dto.search.SearchResponce;
-import searchengine.services.indexing.IndexingServiceImpl;
-import searchengine.services.lemmatization.LemmatizatorServiсeImpl;
-import searchengine.services.wordsearchresponse.SearchStatisticImplPreparationResponse;
+import searchengine.services.IndexingServiceImpl;
+import searchengine.lemmatization.LemmatizatorServiсeImpl;
+import searchengine.wordsearchresponse.SearchStatisticImplPreparationResponse;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
