@@ -20,7 +20,6 @@ public class ApiController {
     private LemmatizatorService lematizatorServise;
     private StatisticsService statisticsService;
 
-    private  IndexingResponseNotOk indexingResponseNotOk;
 
     @GetMapping("/statistics")
     public ResponseEntity<StatisticsResponse> statistics() {

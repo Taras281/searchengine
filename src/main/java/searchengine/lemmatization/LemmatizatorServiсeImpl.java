@@ -2,6 +2,7 @@ package searchengine.lemmatization;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -67,6 +68,11 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
     @Autowired
     Label myLabel;
 
+    @Autowired
+    Logger logger;
+
+    private boolean rewritePage;
+
     public void setRewritePage(boolean rewritePage) {
         this.rewritePage = rewritePage;
     }
@@ -86,7 +92,7 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
         return sitesList.getSites().stream().map(l-> uri.contains(l.getUrl())).anyMatch(b->b==true);
     }
 
-    private boolean rewritePage;
+
 
     public void runing() {
         writeBaseLemsTableIndex(pathParsingLink);
@@ -102,15 +108,7 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
             pageReposytory.flush();
             siteReposytory.flush();
             if(rewritePage){
-                if(page!=null){
-                delite(page);}
-                if(site==null){
-                    return;
-                }
-                String[] resPars=getCodeAndContent(pathToBase);
-                List<Site> sites = siteReposytory.findAll();
-                pageReposytory.save(getPage(pathToBase, site, resPars));
-                page = pageReposytory.findByPath(pathToBase);
+                page = rewritePage(page, site, pathToBase);
             }
             if (page==null){
                 return;
@@ -136,6 +134,17 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
         pageReposytory.delete(page);
         pageReposytory.flush();
  }
+    private Page rewritePage(Page page, Site site, String pathToBase) {
+        if(page!=null){
+            delite(page);}
+        if(site==null){
+            return null;
+        }
+        String[] resPars=getCodeAndContent(pathToBase);
+        pageReposytory.save(getPage(pathToBase, site, resPars));
+        page = pageReposytory.findByPath(pathToBase);
+        return page;
+    }
 
     private Index getIndex(Lemma lemma, Page page) {
         Index index = new Index();
@@ -212,7 +221,7 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
             res[1] = document.head().toString()+document.body().toString().toString();
 
         } catch (IOException e) {
-
+            logger.error("Error pars " + pathToBase + "  " + e);
         }
         return res;
     }

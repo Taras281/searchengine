@@ -3,6 +3,7 @@ package searchengine.services;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,8 @@ public class IndexingServiceImpl implements IndexingService {
 
     private SitesList sitesList;
 
+    private Logger logger;
+
 
     private boolean indexingState;
     private ArrayList<SubClassIndexingServise> listIndexingServiseImpl;
@@ -49,7 +52,7 @@ public class IndexingServiceImpl implements IndexingService {
         indexingState = false;
     }
     private Label myLabel;
-    public IndexingServiceImpl(SiteRepository siteRepository, PageRepository pageReposytory, SitesList sitesListFromProperties, UserAgent uSerAgent, SitesList sitesList, Label label) {
+    public IndexingServiceImpl(SiteRepository siteRepository, PageRepository pageReposytory, SitesList sitesListFromProperties, UserAgent uSerAgent, SitesList sitesList, Label label, Logger logger) {
         this.siteRepository = siteRepository;
         this.pageReposytory = pageReposytory;
         this.sitesListFromProperties = sitesListFromProperties;
@@ -116,8 +119,7 @@ public class IndexingServiceImpl implements IndexingService {
         int countSite=1;
         SubClassIndexingServise.recreating.set(true);
         for(Site site: sitesList.getSites()){
-            iis = new SubClassIndexingServise();
-            iis.init(site, sitesListFromProperties, uSerAgent, siteRepository, pageReposytory, countSite);
+            iis = new SubClassIndexingServise(site, sitesListFromProperties, uSerAgent, siteRepository, pageReposytory, countSite);
             listIndexingServiseImpl.add(iis);
             countSite++;
           }
@@ -136,7 +138,6 @@ public class IndexingServiceImpl implements IndexingService {
         tpe.shutdownNow();
     }
     public class SubClassIndexingServise {
-        private  int numberSiteApplicationProperties;
 
         private SitesList sitesListFromProperties;
         private UserAgent userAgent;
@@ -152,7 +153,7 @@ public class IndexingServiceImpl implements IndexingService {
         private Set notEyetParsingLinkWhereStopedUser;
         private ParserForkJoin task;
 
-    public void init(Site site, SitesList sitesList, UserAgent userAgent, SiteRepository siteRepository, PageRepository pageReposytory, int numberSiteApplicationProperties){
+    public SubClassIndexingServise(Site site, SitesList sitesList, UserAgent userAgent, SiteRepository siteRepository, PageRepository pageReposytory, int numberSiteApplicationProperties){
         this.site = site;
         this.sitesListFromProperties = sitesList;
         this.userAgent = userAgent;
@@ -183,7 +184,6 @@ public class IndexingServiceImpl implements IndexingService {
         notEyetParsingLinkWhereStopedUser = new HashSet();
         task = new ParserForkJoin(url, siteInBAse, marker, notEyetParsingLinkWhereStopedUser);
         task.blockWorkForkJoin=(false);
-        long Start = System.currentTimeMillis();
         fjp.invoke(task);
         siteInBAse.setStatus(StatusEnum.INDEXED);
         siteRepository.save(siteInBAse);
@@ -232,10 +232,6 @@ public class IndexingServiceImpl implements IndexingService {
         private searchengine.model.Site site;
         static private Set<String> errorLinks;
 
-
-
-
-
     public ParserForkJoin(String link, searchengine.model.Site site, String marker, Set notEyetParsingLinkWhereStopedUser) {
         this.link = link;
         this.marker = marker;
@@ -244,7 +240,6 @@ public class IndexingServiceImpl implements IndexingService {
             errorLinks = new HashSet<>();
         }
         this.site=site;
-
     }
 
     @Override
@@ -285,6 +280,7 @@ public class IndexingServiceImpl implements IndexingService {
             synchronized (url){
                 sendErrorBase("Error pars url " + url + "  " +e.toString());
                 errorLinks.add(url);
+                logger.error("Error pars url " + url + "  " +e.toString());
             }
         }
         if (document == (null)) {
@@ -322,10 +318,6 @@ public class IndexingServiceImpl implements IndexingService {
 
 
         public boolean contaning(String absLink, String marker) {
-            /*if (absLink == "/www.playback") {
-                int y = 0;
-            }*/
-
             if (marker.contains("www.")) {
                 String[] s = marker.split("www.");
                 if (s.length > 1) {

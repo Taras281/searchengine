@@ -5,6 +5,7 @@ import org.apache.lucene.morphology.WrongCharaterException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,9 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
     private Lemmatizator lematizator;
     @Autowired
     SiteRepository siteRepository;
+
+    @Autowired
+    Logger logger;
 
 
     public SearchResponce getStat() {
@@ -133,6 +137,7 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
                 lemmsFromtext[i] = normalForm;
             }
             catch (WrongCharaterException wce){
+                logger.error(wce.toString());
 
             }
         }
@@ -184,6 +189,7 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
         }
         catch(NullPointerException npe){
             title = "not found title";
+            logger.info(title + "  " + npe);
         }
         return title;
     }

@@ -14,4 +14,8 @@ public class Application {
         SpringApplication.run(Application.class, args);
 
     }
+    @Bean
+    public Logger logger(){
+        return LoggerFactory.getLogger("application");
+    }
 }

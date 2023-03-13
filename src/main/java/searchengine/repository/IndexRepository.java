@@ -5,7 +5,6 @@ import searchengine.model.Index;
 import searchengine.model.Lemma;
 import searchengine.model.Page;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public interface IndexRepository extends JpaRepository<Index, Integer> {
