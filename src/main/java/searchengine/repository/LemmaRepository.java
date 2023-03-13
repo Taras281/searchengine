@@ -14,22 +14,9 @@ import java.util.Set;
 @Repository
 public interface LemmaRepository extends JpaRepository<Lemma, Integer> {
 
+    List<Lemma> findAllByLemmaIn(Set<String> setLems);
 
-    @Modifying
-    @Transactional
-    @Query(value = "Select * from search_engine.lemma where lemma in :setLems",
-            nativeQuery = true)
-    List<Lemma> getAllContainsLems(Set<String> setLems);
+    ArrayList<Lemma> findAllBySite(Site idSite);
 
-    @Modifying
-    @Transactional
-    @Query(value = "Select id, site_id, lemma, frequency from search_engine.lemma where site_id = :idSite",
-            nativeQuery = true)
-    ArrayList<Lemma> getAllLems(Site idSite);
 
-    @Modifying
-    @Transactional
-    @Query(value = "Select id, site_id, lemma, frequency from search_engine.lemma where lemma = :k",
-            nativeQuery = true)
-    int findByLema(String k);
 }

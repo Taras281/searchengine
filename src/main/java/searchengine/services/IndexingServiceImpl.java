@@ -391,14 +391,14 @@ public class IndexingServiceImpl implements IndexingService {
 
 
         private boolean dontContained(String absLink) {
-            ArrayList<String> response = pageReposytory.getByPath(absLink);
+            Set<Page> response = pageReposytory.findAllByPathIn(Set.of(absLink));
             return response.isEmpty();
         }
 
         private Set<String> getSetLinkAfterCheckConsistBase(Set<String> inputSet){
-            Set<String> linkExistIntoBase = pageReposytory.getListPageonPath(inputSet);
-            for(String s: linkExistIntoBase){
-                inputSet.remove(s);
+            Set<Page> linkExistIntoBase = pageReposytory.findAllByPathIn(inputSet);
+            for(Page s: linkExistIntoBase){
+                inputSet.remove(s.getPath());
             }
             return inputSet;
         }

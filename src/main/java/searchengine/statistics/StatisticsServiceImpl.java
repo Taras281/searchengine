@@ -54,11 +54,11 @@ public class StatisticsServiceImpl implements StatisticsService {
             item.setUrl(site.getUrl());
                 searchengine.model.Site siteModel = siteRepository.findByUrl(site.getUrl());
                 if(siteModel==null){continue;}
-                ArrayList<Page> pagesSite = pageReposytory.findAllBySiteId(siteModel);
+                ArrayList<Page> pagesSite = pageReposytory.findAllBySite(siteModel);
                 int pages = pagesSite.size();
                 if(pages>0){
                     int idSite = (int) siteModel.getId();
-                    ArrayList<Lemma> lemma = lemmaReposytory.getAllLems(siteModel);
+                    ArrayList<Lemma> lemma = lemmaReposytory.findAllBySite(siteModel);
                     int lemmas = lemma.size();
                     item.setPages(pages);
                     item.setLemmas(lemmas);

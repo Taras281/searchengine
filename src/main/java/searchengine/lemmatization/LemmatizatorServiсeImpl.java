@@ -155,7 +155,7 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
 
     private List<Lemma> getLemmsOptionTwo(HashMap<String, Integer> lemsFromPage) {
         Set<String> key=lemsFromPage.keySet();
-        List<Lemma> list= lemmaReposytory.getAllContainsLems(key);
+        List<Lemma> list= lemmaReposytory.findAllByLemmaIn(key);
         for(Lemma lemma:list){
            lemma.setFrequency(lemma.getFrequency()+1);
         }

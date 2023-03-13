@@ -123,15 +123,15 @@ public class Searcher {
 
     private List<Index> findListLemma(List<Index> listIndex, Lemma lemma1) {
          // по списку индексов найти все индексы лемм
-        // по полученным леммам найти список индексов
-        // из полученного списка выбрать содержащие индекс следующей леммы
+         // по полученным леммам найти список индексов
+         // из полученного списка выбрать содержащие индекс следующей леммы
          List<Lemma> lemmaList = listIndex.stream().map(index -> index.getLemmaId()).collect(Collectors.toList());
          List<Integer> listIdLemm = lemmaList.stream().map(lemma -> lemma.getId()).collect(Collectors.toList());
          listIdLemm = removeDoble(listIdLemm);
          indexReposytory.flush();
          List<Index> indexList1 = getLems(listIdLemm);
          List<Long> listPageId = indexList1.stream().map(index -> index.getPageId().getId()).collect(Collectors.toList());
-         List<Index> indexList = indexReposytory.getAllByPageId(listPageId);
+         List<Index> indexList = indexReposytory.findAllByPageIdIn(getPages(listPageId));
          return indexList.stream().filter(index -> index.getLemmaId().getId()==lemma1.getId()).collect(Collectors.toList());
     }
 
@@ -145,6 +145,9 @@ public class Searcher {
         return res;
     }
 
+    private List<Page> getPages(List<Long> listPageId){
+        return pageReposytory.findAllByIdIn(listPageId);
+    }
     private List<Index> getLems(List<Integer> listIdLemm) {
         Session session = entityManager.unwrap(Session.class);
         List<Index> indexs = new ArrayList<>();
@@ -194,7 +197,7 @@ public class Searcher {
     }
 
     public List<Lemma> getLemmaFromBase(Set<String> listQueryWord){
-        List<Lemma> ll = lemmaReposytory.getAllContainsLems(listQueryWord);
+        List<Lemma> ll = lemmaReposytory.findAllByLemmaIn(listQueryWord);
         if(!site.equals("-1")){
             ll = ll.stream().filter(lemma -> lemma.getSite().getId()==siteId).collect(Collectors.toList());
         }
