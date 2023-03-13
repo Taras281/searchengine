@@ -19,7 +19,6 @@ public interface SiteRepository extends JpaRepository<Site, Long> {
             "`content` mediumtext  NOT NULL," +
             "`path` text  NOT NULL," +
             "`site_id` int DEFAULT NULL," +
-            "`thread` TEXT DEFAULT NULL," +
             "PRIMARY KEY (`id`), " +
             "UNIQUE KEY `path` (`path`(300)), " +
             "KEY `FKj2jx0gqa4h7wg8ls0k3y221h2` (`site_id`), " +

@@ -43,7 +43,6 @@ public class IndexingServiceImpl implements IndexingService {
 
     private Logger logger;
 
-
     private boolean indexingState;
     private ArrayList<SubClassIndexingServise> listIndexingServiseImpl;
     private ExecutorService tpe;
@@ -67,37 +66,38 @@ public class IndexingServiceImpl implements IndexingService {
             startIndexing();
             return new ResponseEntity<>(creatResponse(true, !indexingState), HttpStatus.OK);
         }
-        else{
-
-        }
         return  new ResponseEntity<>(creatResponse(true, indexingState), HttpStatus.BAD_REQUEST);
     }
 
     private IndexingResponse creatResponse(boolean start, boolean indexingStarted){
-        IndexingResponseOk indexingResponseOk=null;
-        IndexingResponseNotOk indexingResponseNotOk = null;
+        IndexingResponse indexingResponse=null;
         if(start&&!indexingStarted){
-            indexingResponseOk = new IndexingResponseOk();
-            indexingResponseOk.setResult(true);
-            return indexingResponseOk;
+            return creatIndexingResponseOk();
         }
         else if (start&&indexingStarted){
-            indexingResponseNotOk = new IndexingResponseNotOk();
-            indexingResponseNotOk.setResult(false);
-            indexingResponseNotOk.setError(myLabel.getIndexingStarted());
-            return indexingResponseNotOk;
+            return creatResponseNotOk();
         }
         else if(!start&&indexingStarted){
-            indexingResponseOk = new IndexingResponseOk();
-            indexingResponseOk.setResult(true);
-            return indexingResponseOk;
+            return creatIndexingResponseOk();
         }
         else if (!start&&!indexingStarted){
-            indexingResponseNotOk = new IndexingResponseNotOk();
-            indexingResponseNotOk.setResult(false);
-            indexingResponseNotOk.setError(myLabel.getIndexingNotStarted());
+            indexingResponse = creatResponseNotOk();
         }
+        return indexingResponse;
+    }
+
+    private IndexingResponse creatIndexingResponseOk() {
+        IndexingResponseOk indexingResponseOk =  new IndexingResponseOk();
+        indexingResponseOk.setResult(true);
+        return indexingResponseOk;
+    }
+
+    private IndexingResponse creatResponseNotOk() {
+        IndexingResponseNotOk indexingResponseNotOk = new IndexingResponseNotOk();
+        indexingResponseNotOk.setResult(false);
+        indexingResponseNotOk.setError(myLabel.getIndexingNotStarted());
         return indexingResponseNotOk;
+
     }
 
     public ResponseEntity<IndexingResponse> getStopIndexing() throws InterruptedException {
@@ -109,8 +109,6 @@ public class IndexingServiceImpl implements IndexingService {
         else {
             return new ResponseEntity<>(creatResponse(false, indexingState), HttpStatus.BAD_REQUEST);
         }
-
-
     }
 
     private void startIndexing() {
@@ -125,7 +123,6 @@ public class IndexingServiceImpl implements IndexingService {
           }
         for(SubClassIndexingServise scis: listIndexingServiseImpl){
                 tpe.execute(()->scis.startIndexing());
-
         }
         tpe.shutdown();
 
@@ -134,7 +131,6 @@ public class IndexingServiceImpl implements IndexingService {
         for(SubClassIndexingServise iis: listIndexingServiseImpl){
             iis.stopIndexing();
         }
-
         tpe.shutdownNow();
     }
     public class SubClassIndexingServise {
@@ -161,7 +157,6 @@ public class IndexingServiceImpl implements IndexingService {
         this.pageReposytory=pageReposytory;
         this.siteId = numberSiteApplicationProperties;
     }
-
     public synchronized boolean startIndexing(){
          recreatingTableSiteAndTable();
          parsing(site.getUrl(), site);
@@ -173,20 +168,19 @@ public class IndexingServiceImpl implements IndexingService {
         task.stopIndexing();
         fjp.shutdownNow();
         return true;
-
     }
     private boolean parsing(String url, Site site) {
-        searchengine.model.Site siteInBAse = returnModelSite(siteId, StatusEnum.INDEXING, getDataTime(), "", url, site.getName());
+        searchengine.model.Site siteInBase = returnModelSite(siteId, StatusEnum.INDEXING, getDataTime(), "", url, site.getName());
         synchronized (siteRepository){
-            siteRepository.save(siteInBAse);
+        siteRepository.save(siteInBase);
         }
         marker = url;
         notEyetParsingLinkWhereStopedUser = new HashSet();
-        task = new ParserForkJoin(url, siteInBAse, marker, notEyetParsingLinkWhereStopedUser);
+        task = new ParserForkJoin(url, siteInBase, marker, notEyetParsingLinkWhereStopedUser);
         task.blockWorkForkJoin=(false);
         fjp.invoke(task);
-        siteInBAse.setStatus(StatusEnum.INDEXED);
-        siteRepository.save(siteInBAse);
+        siteInBase.setStatus(StatusEnum.INDEXED);
+        siteRepository.save(siteInBase);
         return true;
     }
     private void recreatingTableSiteAndTable() {
@@ -204,7 +198,6 @@ public class IndexingServiceImpl implements IndexingService {
                 fjp=new ForkJoinPool();
             }
         }
-
     }
 
     private searchengine.model.Site returnModelSite(long id, StatusEnum indexing, String dataTime, String error, String url, String nameSite) {
@@ -228,7 +221,6 @@ public class IndexingServiceImpl implements IndexingService {
         String link;
         private String marker;
         private static Boolean blockWorkForkJoin;
-
         private searchengine.model.Site site;
         static private Set<String> errorLinks;
 
@@ -263,54 +255,58 @@ public class IndexingServiceImpl implements IndexingService {
 
     private Set<String> pars(String url){
         Set setUrlinPage = new HashSet<>();
-        int statusResponse = -1;
         if ((!validUrl(url))||(!contaning(url, marker))|| errorLinks.contains(url)) {
             notEyetParsingLinkWhereStopedUser.remove(url);
             return setUrlinPage;
         }
-        Document document = null;
-        try {
-            document = Jsoup.connect(url)
-                    .userAgent(userAgent.getUserAgent())
-                    .referrer(userAgent.getReferrer())
-                    .get();
-            statusResponse = document.connection().response().statusCode();
-
-        } catch (IOException e) {
-            synchronized (url){
-                sendErrorBase("Error pars url " + url + "  " +e.toString());
-                errorLinks.add(url);
-                logger.error("Error pars url " + url + "  " +e.toString());
-            }
-        }
+        Document document = getDocument(url);
         if (document == (null)) {
             notEyetParsingLinkWhereStopedUser.remove(url);
             return setUrlinPage;
         }
+        int statusResponse = document.connection().response().statusCode();
         synchronized (pageReposytory){
-         if (dontContained((url))) {
-                pageReposytory.save(new Page((int) (pageReposytory.count() + 1), site, (url),
-                        statusResponse, document.head().toString()+document.body().toString()));
+        if (dontContained((url))) {
+                pageReposytory.save(new Page((int) (pageReposytory.count() + 1), site, (url), statusResponse, document.head().toString()+document.body().toString()));
                 setTime(site);
                 startLematization(url);
         }
          else{
              notEyetParsingLinkWhereStopedUser.remove(url);
              return setUrlinPage;
-         }
-        }
-        Elements links = document.select("a[href]");
-        Set<String> linkss= links.stream().map(link-> link.attr("abs:href")).collect(Collectors.toSet());
-        setUrlinPage = getSetLinkAfterCheckConsistBase(linkss).
-                                     stream().filter(link->(contaning(link, marker) && validUrl(link) && !link.isEmpty())).
-                                     collect(Collectors.toSet());
-
-      if(!blockWorkForkJoin){
+         }}
+        setUrlinPage = getSetUrlInPage(document);
+        if(!blockWorkForkJoin){
           notEyetParsingLinkWhereStopedUser.addAll(setUrlinPage);
           notEyetParsingLinkWhereStopedUser.remove(url);
-      }
+        }
         return setUrlinPage;
     }
+
+        private Set getSetUrlInPage(Document document) {
+            Elements links = document.select("a[href]");
+            Set<String> linkss= links.stream().map(link-> link.attr("abs:href")).collect(Collectors.toSet());
+            return getSetLinkAfterCheckConsistBase(linkss).stream()
+                    .filter(link->(contaning(link, marker) && validUrl(link) && !link.isEmpty())).collect(Collectors.toSet());
+        }
+
+        private Document getDocument(String url) {
+        Document document = null;
+            try {
+                document = Jsoup.connect(url)
+                        .userAgent(userAgent.getUserAgent())
+                        .referrer(userAgent.getReferrer())
+                        .get();
+            } catch (IOException e) {
+                synchronized (url){
+                    String error = "Error pars url " + url + "  " +e.toString();
+                    sendErrorBase(error);
+                    errorLinks.add(url);
+                    logger.error(error);
+                }
+            }
+            return document;
+        }
 
         private void startLematization(String url) {
             SubLemmatizatorController.getInstance().addDeque(url);
@@ -352,7 +348,6 @@ public class IndexingServiceImpl implements IndexingService {
                     }
                 }
             }
-
             }
         setStatusSiteINDEXED(site);
         }
@@ -362,7 +357,6 @@ public class IndexingServiceImpl implements IndexingService {
                 site.setStatus(StatusEnum.INDEXED);
                 siteRepository.save(site);
             }
-
         }
 
         private void setTime(searchengine.model.Site site) {
@@ -370,7 +364,6 @@ public class IndexingServiceImpl implements IndexingService {
                 site.setStatusTime(getDataTime());
                 siteRepository.save(site);
             }
-
         }
         private void sendErrorBase(String error){
             synchronized (siteRepository){
@@ -378,7 +371,6 @@ public class IndexingServiceImpl implements IndexingService {
                 site.setLastError(err);
                 siteRepository.save(site);
             }
-
         }
 
 
@@ -394,9 +386,7 @@ public class IndexingServiceImpl implements IndexingService {
             }
             return inputSet;
         }
-
     }
-
     }
 
 }

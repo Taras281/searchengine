@@ -30,52 +30,49 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     @Autowired
     LemmaRepository lemmaReposytory;
-    private final Random random = new Random();
     private final SitesList sites;
 
     @Override
     public StatisticsResponse getStatistics() {
-        String[] statuses = {"INDEXED", "FAILED", "INDEXING"};
-        String[] errors = {
-                "Ошибка индексации: главная страница сайта не доступна",
-                "Ошибка индексации: сайт не доступен",
-                ""
-        };
         TotalStatistics total = new TotalStatistics();
         total.setSites(sites.getSites().size());
         total.setIndexing(true);
-
-        List<DetailedStatisticsItem> detailed = new ArrayList<>();
         List<Site> sitesList = sites.getSites();
+        StatisticsResponse response = new StatisticsResponse();
+        StatisticsData data = getStatisticsData(sitesList, total);
+        response.setStatistics(data);
+        response.setResult(true);
+        return response;
+    }
+
+    private StatisticsData getStatisticsData(List<Site> sitesList, TotalStatistics total) {
+        StatisticsData statisticsData = new StatisticsData();
+        List<DetailedStatisticsItem> detailed = new ArrayList<>();
         for (int i = 0; i < sitesList.size(); i++) {
             Site site = sitesList.get(i);
             DetailedStatisticsItem item = new DetailedStatisticsItem();
             item.setName(site.getName());
             item.setUrl(site.getUrl());
-                searchengine.model.Site siteModel = siteRepository.findByUrl(site.getUrl());
-                if(siteModel==null){continue;}
-                ArrayList<Page> pagesSite = pageReposytory.findAllBySite(siteModel);
-                int pages = pagesSite.size();
-                if(pages>0){
-                    ArrayList<Lemma> lemma = lemmaReposytory.findAllBySite(siteModel);
-                    int lemmas = lemma.size();
-                    item.setPages(pages);
-                    item.setLemmas(lemmas);
-                    item.setStatus(siteModel.getStatus().name());
-                    item.setError(siteModel.getLastError());
-                    item.setStatusTime(siteModel.getStatusTime());
-                    total.setPages(total.getPages() + pages);
-                    total.setLemmas(total.getLemmas() + lemmas);
-                    detailed.add(item);
-                }
+            searchengine.model.Site siteModel = siteRepository.findByUrl(site.getUrl());
+            if(siteModel==null){continue;}
+            ArrayList<Page> pagesSite = pageReposytory.findAllBySite(siteModel);
+            int pages = pagesSite.size();
+            if(pages>0){
+                ArrayList<Lemma> lemma = lemmaReposytory.findAllBySite(siteModel);
+                int lemmas = lemma.size();
+                item.setPages(pages);
+                item.setLemmas(lemmas);
+                item.setStatus(siteModel.getStatus().name());
+                item.setError(siteModel.getLastError());
+                item.setStatusTime(siteModel.getStatusTime());
+                total.setPages(total.getPages() + pages);
+                total.setLemmas(total.getLemmas() + lemmas);
+                detailed.add(item);
+            }
         }
-            StatisticsResponse response = new StatisticsResponse();
-            StatisticsData data = new StatisticsData();
-            data.setTotal(total);
-            data.setDetailed(detailed);
-            response.setStatistics(data);
-            response.setResult(true);
-            return response;
+        statisticsData.setTotal(total);
+        statisticsData.setDetailed(detailed);
+        return statisticsData;
     }
 
 }

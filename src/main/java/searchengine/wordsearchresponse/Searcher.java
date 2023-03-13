@@ -19,8 +19,6 @@ import javax.persistence.PersistenceContext;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-
 @Component
 @Data
 public class Searcher {
@@ -31,26 +29,21 @@ public class Searcher {
     private long siteId;
     @Autowired
     private Lemmatizator lematizator;
-
     @Autowired
     private PageRepository pageReposytory;
-
     @Autowired
     private IndexRepository indexReposytory;
-
     @Autowired
     private SiteRepository siteRepository;
-
     @Autowired
     LemmaRepository lemmaReposytory;
     @PersistenceContext
     private EntityManager entityManager;
-
+    Set<String> setLemmQuery;
     public Set<String> getSetLemmQuery() {
         return setLemmQuery;
     }
 
-    Set<String> setLemmQuery;
     public  ArrayList<Map.Entry<Page, float[]>> vorker(String query){
        siteId = site.equals("-1")?-1:siteRepository.findByUrl(site).getId();
        setLemmQuery = getQeryLemma(query.trim());
@@ -215,8 +208,6 @@ public class Searcher {
         return result;
     }
 
-
-
     private class MyComparator implements Comparator<Lemma> {
 
         @Override
@@ -224,6 +215,5 @@ public class Searcher {
             return o1.getFrequency()-o2.getFrequency();
         }
     }
-
 
 }

@@ -37,7 +37,6 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
     @Autowired
     Logger logger;
 
-
     public SearchResponce getStat() {
         if(query.equals("")||query.matches("^[a-zA-Z]+$")){
             SearchResponce responce = new SearchResponce();
@@ -56,6 +55,12 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
             responce.setError("результаты не найдены");
             return responce;
         }
+        SearchResponce responce = getResponse(resultSearch);
+        return responce;
+    }
+
+    private SearchResponce getResponse(ArrayList<Map.Entry<Page, float[]>> resultSearch) {
+        SearchResponce responce = new SearchResponce();
         int countPage = resultSearch.size();
         int start = offset>=resultSearch.size()?resultSearch.size()-1:offset;
         int dif = Math.abs(resultSearch.size()-start);
@@ -71,7 +76,6 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
             item.setSnippet(getSnippet(resultSearch.get(i).getKey().getContent()));
             detailedStatisticsSearches[i-start]=item;
         }
-        SearchResponce responce = new SearchResponce();
         responce.setResult(true);
         responce.setCount(countPage);
         responce.setData(detailedStatisticsSearches);
@@ -98,7 +102,6 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
         String[] lemmsFromtext = getLemsFromText(arrWords);
         ArrayList<Integer> indexConcidenceLemmAndWord = getIndexConcidence(lemmsFromtext, formsNormal);
         ArrayList<String> result = getMettLemsInText(arrWords, indexConcidenceLemmAndWord);
-
         return result.toString();
     }
 
@@ -202,6 +205,4 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
         SearchResponce responce = this.getStat();
         return  new ResponseEntity(responce, HttpStatus.OK);
     }
-
-
 }
