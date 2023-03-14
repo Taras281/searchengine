@@ -13,7 +13,6 @@ import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
 import searchengine.lemmatization.Lemmatizator;
-
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.*;
@@ -81,7 +80,6 @@ public class Searcher {
             List<Index> indexList = indexReposytory.findAllByPageId(page);
             int sumRankPage = (int)indexList.stream().mapToDouble(index -> index.getRank()).sum();
             rankAbsList.add(sumRankPage);
-
         }
         Integer maxRank = rankAbsList.stream().max(Integer::compare).get();
         for(int i=0;i<listPage.size();i++){
@@ -143,18 +141,17 @@ public class Searcher {
     }
     private List<Index> getLems(List<Integer> listIdLemm) {
         Session session = entityManager.unwrap(Session.class);
-        List<Index> indexs = new ArrayList<>();
+        List<Index> index = new ArrayList<>();
         Iterator iterator = listIdLemm.iterator();
         while (iterator.hasNext()) {
             String id = iterator.next().toString();
             String lemma1 = "FROM Index WHERE lemma_id = :lem";
-            //  String lemma1 = "FROM Lemma WHERE id=11258";
             Query query = session.createQuery(lemma1);
             query.setParameter("lem", id);
-            indexs.addAll(query.list());
+            index.addAll(query.list());
 
         }
-        return indexs;
+        return index;
     }
 
 
@@ -203,13 +200,11 @@ public class Searcher {
             if (!result.contains(str)){
                 result.add(str);
             }
-
         }
         return result;
     }
 
     private class MyComparator implements Comparator<Lemma> {
-
         @Override
         public int compare(Lemma o1, Lemma o2) {
             return o1.getFrequency()-o2.getFrequency();

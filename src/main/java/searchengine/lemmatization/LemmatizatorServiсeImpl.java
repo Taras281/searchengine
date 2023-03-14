@@ -22,7 +22,6 @@ import searchengine.repository.IndexRepository;
 import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
-
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.io.IOException;
@@ -122,21 +121,20 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
         List<Lemma> lemmaFromBase = getLemmsOptionTwo(lemsFromPage);
         HashMap<String, Integer> nameLemmaNoYetWriteBase = getLemsNotYetWriteBase(lemsFromPage, lemmaFromBase);
         List<Lemma> lemmaNoYetWriteBase = getListLemmsForSaveBase(nameLemmaNoYetWriteBase, site, lemmaFromBase);
-        List<Lemma> listLemmaForSaveBase = (lemmaFromBase);
-        listLemmaForSaveBase.addAll(lemmaNoYetWriteBase);
-        List<Index> indexFromBaseOptionTwoo = getIndex(listLemmaForSaveBase, page);
+        lemmaFromBase.addAll(lemmaNoYetWriteBase);
+        List<Index> indexFromBaseOptionTwoo = getIndex(lemmaFromBase, page);
         entityManager.flush();
-        lemmaReposytory.saveAll(listLemmaForSaveBase);
+        lemmaReposytory.saveAll(lemmaFromBase);
         indexReposytory.saveAll(indexFromBaseOptionTwoo);
     }
 
-    private void delite(Page page) {
+    private void delete(Page page) {
         pageReposytory.delete(page);
         pageReposytory.flush();
  }
     private Page rewritePage(Page page, Site site, String pathToBase) {
         if(page!=null){
-            delite(page);}
+            delete(page);}
         if(site==null){
             return null;
         }

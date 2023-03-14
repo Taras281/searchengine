@@ -18,7 +18,6 @@ import searchengine.model.Page;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
 import searchengine.lemmatization.SubLemmatizatorController;
-
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -64,35 +63,35 @@ public class IndexingServiceImpl implements IndexingService {
         if (!indexingState){
             indexingState = true;
             startIndexing();
-            return new ResponseEntity<>(creatResponse(true, !indexingState), HttpStatus.OK);
+            return new ResponseEntity<>(createResponse(true, !indexingState), HttpStatus.OK);
         }
-        return  new ResponseEntity<>(creatResponse(true, indexingState), HttpStatus.BAD_REQUEST);
+        return  new ResponseEntity<>(createResponse(true, indexingState), HttpStatus.BAD_REQUEST);
     }
 
-    private IndexingResponse creatResponse(boolean start, boolean indexingStarted){
+    private IndexingResponse createResponse(boolean start, boolean indexingStarted){
         IndexingResponse indexingResponse=null;
         if(start&&!indexingStarted){
-            return creatIndexingResponseOk();
+            return createIndexingResponseOk();
         }
         else if (start&&indexingStarted){
-            return creatResponseNotOk();
+            return createResponseNotOk();
         }
         else if(!start&&indexingStarted){
-            return creatIndexingResponseOk();
+            return createIndexingResponseOk();
         }
         else if (!start&&!indexingStarted){
-            indexingResponse = creatResponseNotOk();
+            indexingResponse = createResponseNotOk();
         }
         return indexingResponse;
     }
 
-    private IndexingResponse creatIndexingResponseOk() {
+    private IndexingResponse createIndexingResponseOk() {
         IndexingResponseOk indexingResponseOk =  new IndexingResponseOk();
         indexingResponseOk.setResult(true);
         return indexingResponseOk;
     }
 
-    private IndexingResponse creatResponseNotOk() {
+    private IndexingResponse createResponseNotOk() {
         IndexingResponseNotOk indexingResponseNotOk = new IndexingResponseNotOk();
         indexingResponseNotOk.setResult(false);
         indexingResponseNotOk.setError(myLabel.getIndexingNotStarted());
@@ -104,10 +103,10 @@ public class IndexingServiceImpl implements IndexingService {
         if(indexingState){
             stopIndexing();
             indexingState = false;
-            return new ResponseEntity<>(creatResponse(false, !indexingState), HttpStatus.OK);
+            return new ResponseEntity<>(createResponse(false, !indexingState), HttpStatus.OK);
         }
         else {
-            return new ResponseEntity<>(creatResponse(false, indexingState), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(createResponse(false, indexingState), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -125,7 +124,6 @@ public class IndexingServiceImpl implements IndexingService {
                 tpe.execute(()->scis.startIndexing());
         }
         tpe.shutdown();
-
     }
     private void stopIndexing() throws InterruptedException {
         for(SubClassIndexingServise iis: listIndexingServiseImpl){
@@ -144,7 +142,6 @@ public class IndexingServiceImpl implements IndexingService {
 
         private long siteId;
         private Site site;
-
         private String marker;
         private Set notEyetParsingLinkWhereStopedUser;
         private ParserForkJoin task;
@@ -267,7 +264,7 @@ public class IndexingServiceImpl implements IndexingService {
         int statusResponse = document.connection().response().statusCode();
         synchronized (pageReposytory){
         if (dontContained((url))) {
-                pageReposytory.save(new Page((int) (pageReposytory.count() + 1), site, (url), statusResponse, document.head().toString()+document.body().toString()));
+                pageReposytory.save(new Page((int) (pageReposytory.count() + 1), site, url, statusResponse, document.head().toString()+document.body().toString()));
                 setTime(site);
                 startLematization(url);
         }
@@ -349,10 +346,10 @@ public class IndexingServiceImpl implements IndexingService {
                 }
             }
             }
-        setStatusSiteINDEXED(site);
+        setStatusSiteIndexed(site);
         }
 
-        private void setStatusSiteINDEXED(searchengine.model.Site site){
+        private void setStatusSiteIndexed(searchengine.model.Site site){
             synchronized (siteRepository){
                 site.setStatus(StatusEnum.INDEXED);
                 siteRepository.save(site);
@@ -388,7 +385,6 @@ public class IndexingServiceImpl implements IndexingService {
         }
     }
     }
-
 }
 
 

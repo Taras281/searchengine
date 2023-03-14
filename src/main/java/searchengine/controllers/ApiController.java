@@ -49,7 +49,7 @@ public class ApiController {
                                                    @RequestParam(value = "offset", required = false, defaultValue = "0") String  offset,
                                                    @RequestParam(value = "limit", required = false, defaultValue = "10000") String  limit){
         query.trim();
-        return  searchStatistic.getStatistics(query, site, limit, offset);
+    return  searchStatistic.getStatistics(query, site, limit, offset);
     }
 
 

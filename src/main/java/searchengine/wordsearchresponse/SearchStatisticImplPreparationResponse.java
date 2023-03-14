@@ -16,7 +16,6 @@ import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repository.SiteRepository;
 import searchengine.lemmatization.Lemmatizator;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -37,7 +36,7 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
     @Autowired
     Logger logger;
 
-    public SearchResponce getStat() {
+    public SearchResponce getStatistics() {
         if(query.equals("")||query.matches("^[a-zA-Z]+$")){
             SearchResponce responce = new SearchResponce();
             responce.setResult(false);
@@ -105,6 +104,10 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
         return result.toString();
     }
 
+    private String remoovePoonctuationMarks(String body) {
+        return body.replaceAll("[^\u0410-\u044F\u0451\u0401]", " ");
+    }
+
     private ArrayList<String> getMettLemsInText(String[] arrWords, ArrayList<Integer> indexConcidenceLemmAndWord) {
         ArrayList<String> result = new ArrayList<>();
         int indexStart;
@@ -113,14 +116,14 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
         for(Integer id: indexConcidenceLemmAndWord){
             indexStart = (id-15)>=0?(id-15):0;
             indexStop= (id+15)>=maxIndex?maxIndex:(id+15);
-            String start = getStroke(arrWords,indexStart, id);
-            String end = getStroke(arrWords,id+1, indexStop);
+            String start = getLine(arrWords,indexStart, id);
+            String end = getLine(arrWords,id+1, indexStop);
             result.add("<br>"+start +" "+"<b>" +arrWords[id]+"</b>"+" "+end);
         }
         return result;
     }
 
-    private String getStroke(String[] arrWords, int indexStart, int indexStop) {
+    private String getLine(String[] arrWords, int indexStart, int indexStop) {
        String[] res=Arrays.copyOfRange(arrWords, indexStart, indexStop);
        StringBuilder sb = new StringBuilder();
        for(String s:res){
@@ -134,33 +137,37 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
     private String[] getLemsFromText(String[] arrWords) {
         String[] lemmsFromtext = new String[arrWords.length];
         for(int i=0;i<arrWords.length;i++){
+            String word = arrWords[i];
             try{
-                arrWords[i] = arrWords[i].toLowerCase();
-                String normalForm = lematizator.luceneMorph.getNormalForms(arrWords[i]).toString();
+                word = word.toLowerCase();
+                word = remoovePoonctuationMarks(word).trim();
+                if(word.equals("")){
+                    continue;
+                }
+                String normalForm = lematizator.luceneMorph.getNormalForms(word).toString();
                 lemmsFromtext[i] = normalForm;
             }
             catch (WrongCharaterException wce){
+                lemmsFromtext[i] = "";
                 logger.error(wce.toString());
-
             }
         }
         return lemmsFromtext;
     }
 
     private ArrayList<Integer> getIndexConcidence(String[] lemmsFromtext, List<String> formsNormal) {
-        ArrayList<Integer> indexConcidenceLemmAndWord = new ArrayList<>();
+        ArrayList<Integer> indexConcidenceLemmInText = new ArrayList<>();
         for(int i=0; i< lemmsFromtext.length; i++){
             if(lemmsFromtext[i]!=null){
                 for (int j=0; j<formsNormal.size(); j++){
                     if(lemmsFromtext[i].contains(formsNormal.get(j))){
-                        indexConcidenceLemmAndWord.add(i);
+                        indexConcidenceLemmInText.add(i);
                     }
                 }
-
             }
         }
-        indexConcidenceLemmAndWord = removeDuble(indexConcidenceLemmAndWord);
-        return indexConcidenceLemmAndWord;
+        indexConcidenceLemmInText = removeDuble(indexConcidenceLemmInText);
+        return indexConcidenceLemmInText;
     }
 
     private ArrayList<Integer> removeDuble(ArrayList<Integer> indexConcidenceLemmAndWord) {
@@ -202,7 +209,7 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
         this.setSite(site);
         this.setQuery(query);
         this.setOffset(Integer.parseInt(offset));
-        SearchResponce responce = this.getStat();
+        SearchResponce responce = this.getStatistics();
         return  new ResponseEntity(responce, HttpStatus.OK);
     }
 }

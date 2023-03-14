@@ -1,7 +1,6 @@
 package searchengine.lemmatization;
 
 import searchengine.model.Page;
-
 import java.util.Comparator;
 import java.util.Map;
 

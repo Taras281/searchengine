@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import searchengine.services.StatusEnum;
-
 import javax.persistence.*;
 
 @Data
