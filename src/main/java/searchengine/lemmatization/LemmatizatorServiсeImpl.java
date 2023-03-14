@@ -4,6 +4,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -76,6 +77,11 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
         this.rewritePage = rewritePage;
     }
     public ResponseEntity<IndexingResponse> getResponse(String uri) {
+        if(!validUri(uri)){
+            indexingResponseNotOk.setError(myLabel.getThisPageOutSite());
+            indexingResponseNotOk.setError("check url");
+            return new ResponseEntity<>(indexingResponseNotOk, HttpStatus.NOT_FOUND);
+        }
         if (uriContainsSiteList(uri))
         {   this.setPathParsingLink(uri);
             this.setRewritePage(true);
@@ -87,6 +93,11 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
             return new ResponseEntity<>(indexingResponseNotOk, HttpStatus.BAD_REQUEST);
        }
      }
+
+    private boolean validUri(String uri) {
+        return  uri.matches("^(https?)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
+    }
+
     private boolean uriContainsSiteList(String uri) {
         return sitesList.getSites().stream().map(l-> uri.contains(l.getUrl())).anyMatch(b->b==true);
     }
