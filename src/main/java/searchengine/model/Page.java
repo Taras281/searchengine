@@ -19,8 +19,9 @@ public class Page {
     @Column(nullable = false)
     private long id;
 
-    @ManyToOne(cascade = CascadeType.MERGE)
-    @OnDelete(action = OnDeleteAction.CASCADE)
+    @ManyToOne(cascade = CascadeType.ALL)
+    //@OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(referencedColumnName = "id")
     private Site site;
 
     @Column(columnDefinition = "TEXT NOT NULL, INDEX path (path(50))")

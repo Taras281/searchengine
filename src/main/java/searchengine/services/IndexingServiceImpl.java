@@ -4,9 +4,12 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.Label;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
@@ -39,7 +42,7 @@ public class IndexingServiceImpl implements IndexingService {
     private UserAgent uSerAgent;
 
     private SitesList sitesList;
-
+@Autowired
     private Logger logger;
 
     private boolean indexingState;
@@ -112,16 +115,19 @@ public class IndexingServiceImpl implements IndexingService {
 
     private void startIndexing() {
         listIndexingServiseImpl = new ArrayList<>();
-        tpe = Executors.newFixedThreadPool(sitesListFromProperties.getSites().size());
+        tpe = Executors.newFixedThreadPool(4);
+        //tpe = Executors.newFixedThreadPool(sitesListFromProperties.getSites().size());
         int countSite=1;
         SubClassIndexingServise.recreating.set(true);
         for(Site site: sitesList.getSites()){
             iis = new SubClassIndexingServise(site, sitesListFromProperties, uSerAgent, siteRepository, pageReposytory, countSite);
+            siteRepository.deleteByUrl(site.getUrl());
             listIndexingServiseImpl.add(iis);
             countSite++;
           }
         for(SubClassIndexingServise scis: listIndexingServiseImpl){
                 tpe.execute(()->scis.startIndexing());
+                logger.info("XXXXXXX tpe.execute " + scis.site.getUrl());
         }
         tpe.shutdown();
     }
@@ -140,7 +146,6 @@ public class IndexingServiceImpl implements IndexingService {
         private ForkJoinPool fjp;
         public static AtomicBoolean recreating = new AtomicBoolean();
 
-        private long siteId;
         private Site site;
         private String marker;
         private Set notEyetParsingLinkWhereStopedUser;
@@ -152,22 +157,24 @@ public class IndexingServiceImpl implements IndexingService {
         this.userAgent = userAgent;
         this.siteRepository = siteRepository;
         this.pageReposytory=pageReposytory;
-        this.siteId = numberSiteApplicationProperties;
     }
     public synchronized boolean startIndexing(){
-         recreatingTableSiteAndTable();
-         parsing(site.getUrl(), site);
+            parsing(site.getUrl(), site);
          return true;
     }
 
     public boolean stopIndexing() throws InterruptedException {
-        task.blockWorkForkJoin=true;
-        task.stopIndexing();
-        fjp.shutdownNow();
+        if (task!=null){
+            task.blockWorkForkJoin=true;
+            task.stopIndexing();
+        }
+        if(fjp!=null){
+            fjp.shutdownNow();
+        }
         return true;
     }
     private boolean parsing(String url, Site site) {
-        searchengine.model.Site siteInBase = returnModelSite(siteId, StatusEnum.INDEXING, getDataTime(), "", url, site.getName());
+        searchengine.model.Site siteInBase = returnModelSite(StatusEnum.INDEXING, getDataTime(), "", url, site.getName());
         synchronized (siteRepository){
         siteRepository.save(siteInBase);
         }
@@ -175,36 +182,24 @@ public class IndexingServiceImpl implements IndexingService {
         notEyetParsingLinkWhereStopedUser = new HashSet();
         task = new ParserForkJoin(url, siteInBase, marker, notEyetParsingLinkWhereStopedUser);
         task.blockWorkForkJoin=(false);
+        fjp=new ForkJoinPool();
         fjp.invoke(task);
         siteInBase.setStatus(StatusEnum.INDEXED);
         siteRepository.save(siteInBase);
         return true;
     }
-    private void recreatingTableSiteAndTable() {
-        synchronized (recreating){
-            if(recreating.get()){
-                recreating.set(false);
-                siteRepository.dropTableSiteAndPage();
-                siteRepository.createTableSite();
-                siteRepository.createTablePage();
-                siteRepository.createTableLemma();
-                siteRepository.createTableIndex();
-                fjp=new ForkJoinPool();
-            }
-            else{
-                fjp=new ForkJoinPool();
-            }
-        }
-    }
 
-    private searchengine.model.Site returnModelSite(long id, StatusEnum indexing, String dataTime, String error, String url, String nameSite) {
-        searchengine.model.Site site = new searchengine.model.Site();
-        site.setId(id);
-        site.setStatus(indexing);
-        site.setStatusTime(dataTime);
-        site.setLastError(error);
-        site.setUrl(url);
-        site.setName(nameSite);
+
+    private searchengine.model.Site returnModelSite(StatusEnum indexing, String dataTime, String error, String url, String nameSite) {
+        searchengine.model.Site site=siteRepository.findByUrl(url);
+        if(site==null){
+            site = new searchengine.model.Site();
+            site.setStatus(indexing);
+            site.setStatusTime(dataTime);
+            site.setLastError(error);
+            site.setUrl(url);
+            site.setName(nameSite);
+        }
         return site;
     }
     private String getDataTime() {

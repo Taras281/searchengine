@@ -22,6 +22,7 @@ public class Lemma {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(referencedColumnName = "id")
     private searchengine.model.Site site;
 
     @Column(columnDefinition = "VARCHAR(255)", nullable = false)
