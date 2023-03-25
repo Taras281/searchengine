@@ -1,0 +1,402 @@
+2023-03-25 19:03:46.803  WARN 4300 --- [HikariPool-1 housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=1d8h32m48s159ms865µs200ns).
+2023-03-25 20:04:22.270  INFO 4300 --- [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2023-03-25 20:04:22.465  INFO 4300 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2023-03-25 20:04:22.488  INFO 4300 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2023-03-25 20:08:03.784  INFO 21560 --- [main] searchengine.Application                 : Starting Application using Java 19.0.2 on DESKTOP-EBV2481 with PID 21560 (C:\Scillbocs\java_basics\searchengine\target\classes started by taras in C:\Scillbocs\java_basics\searchengine)
+2023-03-25 20:08:03.787  INFO 21560 --- [main] searchengine.Application                 : No active profile set, falling back to 1 default profile: "default"
+2023-03-25 20:08:04.669  INFO 21560 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2023-03-25 20:08:04.752  INFO 21560 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 71 ms. Found 4 JPA repository interfaces.
+2023-03-25 20:08:09.728  INFO 21560 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8080 (http)
+2023-03-25 20:08:09.742  INFO 21560 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2023-03-25 20:08:09.743  INFO 21560 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.64]
+2023-03-25 20:08:09.865  INFO 21560 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2023-03-25 20:08:09.865  INFO 21560 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 6020 ms
+2023-03-25 20:08:10.109  INFO 21560 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2023-03-25 20:08:10.355  INFO 21560 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2023-03-25 20:08:10.444  INFO 21560 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2023-03-25 20:08:10.536  INFO 21560 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.9.Final
+2023-03-25 20:08:10.770  INFO 21560 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2023-03-25 20:08:10.914  INFO 21560 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2023-03-25 20:08:11.729  INFO 21560 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2023-03-25 20:08:11.737  INFO 21560 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2023-03-25 20:08:12.495  WARN 21560 --- [main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'apiController' defined in file [C:\Scillbocs\java_basics\searchengine\target\classes\searchengine\controllers\ApiController.class]: Unsatisfied dependency expressed through constructor parameter 1; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'indexingServiseImplThoo' defined in file [C:\Scillbocs\java_basics\searchengine\target\classes\searchengine\services\IndexingServiseImplThoo.class]: Unsatisfied dependency expressed through constructor parameter 6; nested exception is org.springframework.beans.factory.NoSuchBeanDefinitionException: No qualifying bean of type 'searchengine.lemmatization.SubLemmatizatorController' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+2023-03-25 20:08:12.495  INFO 21560 --- [main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2023-03-25 20:08:12.498  INFO 21560 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2023-03-25 20:08:12.508  INFO 21560 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2023-03-25 20:08:12.510  INFO 21560 --- [main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2023-03-25 20:08:12.523  INFO 21560 --- [main] ConditionEvaluationReportLoggingListener : 
+
+Error starting ApplicationContext. To display the conditions report re-run your application with 'debug' enabled.
+2023-03-25 20:08:12.551 ERROR 21560 --- [main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Parameter 6 of constructor in searchengine.services.IndexingServiseImpl required a bean of type 'searchengine.lemmatization.SubLemmatizatorController' that could not be found.
+
+
+Action:
+
+Consider defining a bean of type 'searchengine.lemmatization.SubLemmatizatorController' in your configuration.
+
+2023-03-25 20:08:55.075  INFO 9528 --- [main] searchengine.Application                 : Starting Application using Java 19.0.2 on DESKTOP-EBV2481 with PID 9528 (C:\Scillbocs\java_basics\searchengine\target\classes started by taras in C:\Scillbocs\java_basics\searchengine)
+2023-03-25 20:08:55.078  INFO 9528 --- [main] searchengine.Application                 : No active profile set, falling back to 1 default profile: "default"
+2023-03-25 20:08:55.786  INFO 9528 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2023-03-25 20:08:55.872  INFO 9528 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 73 ms. Found 4 JPA repository interfaces.
+2023-03-25 20:08:57.369  INFO 9528 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8080 (http)
+2023-03-25 20:08:57.384  INFO 9528 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2023-03-25 20:08:57.385  INFO 9528 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.64]
+2023-03-25 20:08:57.507  INFO 9528 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2023-03-25 20:08:57.507  INFO 9528 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2371 ms
+2023-03-25 20:08:57.718  INFO 9528 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2023-03-25 20:08:57.902  INFO 9528 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2023-03-25 20:08:57.968  INFO 9528 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2023-03-25 20:08:58.031  INFO 9528 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.9.Final
+2023-03-25 20:08:58.255  INFO 9528 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2023-03-25 20:08:58.383  INFO 9528 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2023-03-25 20:08:59.082  INFO 9528 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2023-03-25 20:08:59.088  INFO 9528 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2023-03-25 20:08:59.871  WARN 9528 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2023-03-25 20:09:00.034  INFO 9528 --- [main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page template: index
+2023-03-25 20:09:00.266  INFO 9528 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8080 (http) with context path ''
+2023-03-25 20:09:00.275  INFO 9528 --- [main] searchengine.Application                 : Started Application in 5.699 seconds (JVM running for 6.124)
+2023-03-25 20:09:07.303  INFO 9528 --- [http-nio-8080-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2023-03-25 20:09:07.303  INFO 9528 --- [http-nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2023-03-25 20:09:07.304  INFO 9528 --- [http-nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2023-03-25 20:09:38.441  INFO 9528 --- [pool-1-thread-1] o.h.e.j.b.internal.AbstractBatchImpl     : HHH000010: On release of batch it still contained JDBC statements
+2023-03-25 20:09:39.436 ERROR 9528 --- [ForkJoinPool-1-worker-7] application                              : Error pars url https://nikoartgallery.com/afisha/aleksey-lyubimov-brams-ostorozhnaya-strastnost-/  org.jsoup.HttpStatusException: HTTP error fetching URL. Status=500, URL=[https://nikoartgallery.com/afisha/aleksey-lyubimov-brams-ostorozhnaya-strastnost-/]
+2023-03-25 20:09:41.365 ERROR 9528 --- [ForkJoinPool-1-worker-1] application                              : Error pars url https://nikoartgallery.com/afisha/varsenik-avanyan-metstso-soprano-karina-pogosbekova-f-no-armyanskiy-romans-19-21vv/  org.jsoup.HttpStatusException: HTTP error fetching URL. Status=500, URL=[https://nikoartgallery.com/afisha/varsenik-avanyan-metstso-soprano-karina-pogosbekova-f-no-armyanskiy-romans-19-21vv/]
+2023-03-25 20:09:41.372 ERROR 9528 --- [ForkJoinPool-1-worker-5] application                              : Error pars url https://nikoartgallery.com/afisha/sergey-mkrtichyan-skripka/  org.jsoup.HttpStatusException: HTTP error fetching URL. Status=500, URL=[https://nikoartgallery.com/afisha/sergey-mkrtichyan-skripka/]
+2023-03-25 20:09:42.133  INFO 9528 --- [pool-1-thread-2] o.h.e.j.b.internal.AbstractBatchImpl     : HHH000010: On release of batch it still contained JDBC statements
+2023-03-25 20:09:42.592 ERROR 9528 --- [ForkJoinPool-1-worker-3] application                              : Error pars url https://nikoartgallery.com/afisha/masm-v-peyzazhe-vasks-vustin-adams-pyart-keydzh-karmanov/  org.jsoup.HttpStatusException: HTTP error fetching URL. Status=500, URL=[https://nikoartgallery.com/afisha/masm-v-peyzazhe-vasks-vustin-adams-pyart-keydzh-karmanov/]
+2023-03-25 20:09:43.867 ERROR 9528 --- [ForkJoinPool-1-worker-4] application                              : Error pars url https://nikoartgallery.com/afisha/yuliya-igonina-i-druzya/  org.jsoup.HttpStatusException: HTTP error fetching URL. Status=500, URL=[https://nikoartgallery.com/afisha/yuliya-igonina-i-druzya/]
+2023-03-25 20:10:16.900 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.900 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.901 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.901 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.902 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.903 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.906 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.906 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.907 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.907 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.908 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.908 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.917 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.917 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.918 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.918 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.918 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.919 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.921 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.922 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.922 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.922 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.923 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.923 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.926 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.927 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.927 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.927 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.927 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.927 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.928 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.928 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.928 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.928 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.928 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.928 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.936 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.936 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.936 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.937 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.937 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.937 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.939 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.939 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.940 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.941 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.941 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.941 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.944 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.944 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.945 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.945 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.945 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.946 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.946 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.953 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.954 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.954 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.954 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.954 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.954 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.956 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.956 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.956 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.956 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.957 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.957 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.964 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.964 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.964 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.964 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.965 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.965 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.967 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.968 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.968 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.968 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.969 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.969 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.972 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.972 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.972 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.972 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.973 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.973 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.975 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.976 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.976 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.976 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.976 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.976 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.979 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.979 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.979 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.980 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.980 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.980 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:10:16.980 ERROR 9528 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:11:18.370 ERROR 9528 --- [ForkJoinPool-2-worker-11] application                              : Error pars url https://nikoartgallery.com/en/  java.net.SocketTimeoutException: Read timed out
+2023-03-25 20:11:22.680  INFO 9528 --- [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2023-03-25 20:11:22.686  INFO 9528 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2023-03-25 20:11:22.697  INFO 9528 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2023-03-25 20:13:00.478  INFO 8924 --- [main] searchengine.Application                 : Starting Application using Java 19.0.2 on DESKTOP-EBV2481 with PID 8924 (C:\Scillbocs\java_basics\searchengine\target\classes started by taras in C:\Scillbocs\java_basics\searchengine)
+2023-03-25 20:13:00.481  INFO 8924 --- [main] searchengine.Application                 : No active profile set, falling back to 1 default profile: "default"
+2023-03-25 20:13:01.188  INFO 8924 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2023-03-25 20:13:01.272  INFO 8924 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 71 ms. Found 4 JPA repository interfaces.
+2023-03-25 20:13:03.139  INFO 8924 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8080 (http)
+2023-03-25 20:13:03.162  INFO 8924 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2023-03-25 20:13:03.163  INFO 8924 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.64]
+2023-03-25 20:13:03.280  INFO 8924 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2023-03-25 20:13:03.280  INFO 8924 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2743 ms
+2023-03-25 20:13:03.499  INFO 8924 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2023-03-25 20:13:03.719  INFO 8924 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2023-03-25 20:13:03.797  INFO 8924 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2023-03-25 20:13:03.866  INFO 8924 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.9.Final
+2023-03-25 20:13:04.113  INFO 8924 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2023-03-25 20:13:04.239  INFO 8924 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2023-03-25 20:13:04.990  INFO 8924 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2023-03-25 20:13:04.999  INFO 8924 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2023-03-25 20:13:05.806  WARN 8924 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2023-03-25 20:13:05.966  INFO 8924 --- [main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page template: index
+2023-03-25 20:13:06.196  INFO 8924 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8080 (http) with context path ''
+2023-03-25 20:13:06.205  INFO 8924 --- [main] searchengine.Application                 : Started Application in 6.261 seconds (JVM running for 6.731)
+2023-03-25 20:13:11.628  INFO 8924 --- [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2023-03-25 20:13:11.628  INFO 8924 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2023-03-25 20:13:11.629  INFO 8924 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2023-03-25 20:13:28.770 ERROR 8924 --- [ForkJoinPool-1-worker-10] application                              : Error pars url https://nikoartgallery.com/afisha/aleksey-lyubimov-brams-ostorozhnaya-strastnost-/  org.jsoup.HttpStatusException: HTTP error fetching URL. Status=500, URL=[https://nikoartgallery.com/afisha/aleksey-lyubimov-brams-ostorozhnaya-strastnost-/]
+2023-03-25 20:13:29.058 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.058 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.059 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.059 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.060 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.060 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.064 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.065 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.065 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.065 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.066 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.066 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.070 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.070 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.070 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.071 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.071 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.071 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.073 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.073 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.077 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.077 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.077 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.077 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.078 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.078 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.081 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.082 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.082 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.082 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.083 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.083 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.087 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.087 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.087 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.087 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.088 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.088 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.093 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.094 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.094 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.095 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.096 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:29.096 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:13:33.937 ERROR 8924 --- [ForkJoinPool-1-worker-10] application                              : Error pars url https://nikoartgallery.com/afisha/sergey-mkrtichyan-skripka/  org.jsoup.HttpStatusException: HTTP error fetching URL. Status=500, URL=[https://nikoartgallery.com/afisha/sergey-mkrtichyan-skripka/]
+2023-03-25 20:13:35.911 ERROR 8924 --- [ForkJoinPool-1-worker-11] application                              : Error pars url https://nikoartgallery.com/en/  java.net.SocketTimeoutException: Read timed out
+2023-03-25 20:13:35.915 ERROR 8924 --- [ForkJoinPool-1-worker-7] application                              : Error pars url https://nikoartgallery.com/arenda/  java.net.SocketTimeoutException: Read timed out
+2023-03-25 20:13:35.919 ERROR 8924 --- [ForkJoinPool-1-worker-9] application                              : Error pars url https://nikoartgallery.com/afisha/  java.net.SocketTimeoutException: Read timed out
+2023-03-25 20:13:36.091 ERROR 8924 --- [ForkJoinPool-1-worker-6] application                              : Error pars url https://nikoartgallery.com/news/all/maryam-aslamazyan-predchuvstvie-vesny/  java.net.SocketTimeoutException: Read timed out
+2023-03-25 20:13:36.249 ERROR 8924 --- [ForkJoinPool-1-worker-10] application                              : Error pars url https://nikoartgallery.com/afisha/varsenik-avanyan-metstso-soprano-karina-pogosbekova-f-no-armyanskiy-romans-19-21vv/  org.jsoup.HttpStatusException: HTTP error fetching URL. Status=500, URL=[https://nikoartgallery.com/afisha/varsenik-avanyan-metstso-soprano-karina-pogosbekova-f-no-armyanskiy-romans-19-21vv/]
+2023-03-25 20:13:36.406 ERROR 8924 --- [ForkJoinPool-1-worker-12] application                              : Error pars url https://nikoartgallery.com/contacts/  java.net.SocketTimeoutException: Read timed out
+2023-03-25 20:13:38.293 ERROR 8924 --- [ForkJoinPool-1-worker-10] application                              : Error pars url https://nikoartgallery.com/afisha/masm-v-peyzazhe-vasks-vustin-adams-pyart-keydzh-karmanov/  org.jsoup.HttpStatusException: HTTP error fetching URL. Status=500, URL=[https://nikoartgallery.com/afisha/masm-v-peyzazhe-vasks-vustin-adams-pyart-keydzh-karmanov/]
+2023-03-25 20:13:39.652 ERROR 8924 --- [ForkJoinPool-1-worker-10] application                              : Error pars url https://nikoartgallery.com/afisha/yuliya-igonina-i-druzya/  org.jsoup.HttpStatusException: HTTP error fetching URL. Status=500, URL=[https://nikoartgallery.com/afisha/yuliya-igonina-i-druzya/]
+2023-03-25 20:14:01.589 ERROR 8924 --- [ForkJoinPool-1-worker-6] application                              : Error pars url https://et-cetera.ru/mobile/performance/  java.net.SocketTimeoutException: Read timed out
+2023-03-25 20:14:10.727 ERROR 8924 --- [ForkJoinPool-1-worker-3] application                              : Error pars url https://et-cetera.ru/mobile/performance/tsiniki/  java.net.SocketTimeoutException: Read timed out
+2023-03-25 20:14:12.189 ERROR 8924 --- [http-nio-8080-exec-8] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:12.189 ERROR 8924 --- [http-nio-8080-exec-8] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:12.190 ERROR 8924 --- [http-nio-8080-exec-8] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:16.914 ERROR 8924 --- [ForkJoinPool-1-worker-6] application                              : Error pars url https://et-cetera.ru/mobile/performance/mandat/  java.net.SocketTimeoutException: Read timed out
+2023-03-25 20:14:19.183 ERROR 8924 --- [http-nio-8080-exec-1] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:19.184 ERROR 8924 --- [http-nio-8080-exec-1] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:19.184 ERROR 8924 --- [http-nio-8080-exec-1] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:20.150 ERROR 8924 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:20.150 ERROR 8924 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:20.150 ERROR 8924 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:20.842 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:20.843 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:20.843 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:23.527 ERROR 8924 --- [http-nio-8080-exec-2] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:23.527 ERROR 8924 --- [http-nio-8080-exec-2] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:23.528 ERROR 8924 --- [http-nio-8080-exec-2] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:26.553 ERROR 8924 --- [http-nio-8080-exec-7] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:26.553 ERROR 8924 --- [http-nio-8080-exec-7] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:26.553 ERROR 8924 --- [http-nio-8080-exec-7] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:27.123 ERROR 8924 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:27.123 ERROR 8924 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:27.123 ERROR 8924 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:28.918 ERROR 8924 --- [http-nio-8080-exec-5] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:28.919 ERROR 8924 --- [http-nio-8080-exec-5] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:28.919 ERROR 8924 --- [http-nio-8080-exec-5] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:32.026 ERROR 8924 --- [http-nio-8080-exec-8] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:32.026 ERROR 8924 --- [http-nio-8080-exec-8] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:32.026 ERROR 8924 --- [http-nio-8080-exec-8] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:34.068 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:34.068 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:34.068 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:35.684 ERROR 8924 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:35.685 ERROR 8924 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:35.685 ERROR 8924 --- [http-nio-8080-exec-10] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:36.885 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:36.886 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:36.886 ERROR 8924 --- [http-nio-8080-exec-3] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:40.551 ERROR 8924 --- [http-nio-8080-exec-2] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:40.552 ERROR 8924 --- [http-nio-8080-exec-2] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:40.552 ERROR 8924 --- [http-nio-8080-exec-2] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:41.443 ERROR 8924 --- [http-nio-8080-exec-4] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:41.444 ERROR 8924 --- [http-nio-8080-exec-4] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:41.444 ERROR 8924 --- [http-nio-8080-exec-4] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:43.292 ERROR 8924 --- [http-nio-8080-exec-7] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:43.293 ERROR 8924 --- [http-nio-8080-exec-7] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:43.293 ERROR 8924 --- [http-nio-8080-exec-7] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:55.143 ERROR 8924 --- [http-nio-8080-exec-5] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:55.143 ERROR 8924 --- [http-nio-8080-exec-5] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:55.144 ERROR 8924 --- [http-nio-8080-exec-5] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:56.953 ERROR 8924 --- [http-nio-8080-exec-8] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:56.953 ERROR 8924 --- [http-nio-8080-exec-8] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:14:56.953 ERROR 8924 --- [http-nio-8080-exec-8] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.823 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.824 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.824 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.824 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.825 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.828 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.828 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.829 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.829 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.829 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.830 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.830 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.833 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.833 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.833 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.833 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.834 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.834 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.834 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.834 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.834 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.837 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.837 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.837 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.837 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.837 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.840 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.840 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.841 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.841 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.841 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.841 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.841 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.841 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.841 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.844 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.844 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.847 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.848 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.848 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.848 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.848 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.854 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.854 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.855 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.855 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.855 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.855 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.858 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.858 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:04.858 ERROR 8924 --- [http-nio-8080-exec-9] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:12.842 ERROR 8924 --- [http-nio-8080-exec-1] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:12.843 ERROR 8924 --- [http-nio-8080-exec-1] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:12.843 ERROR 8924 --- [http-nio-8080-exec-1] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:12.843 ERROR 8924 --- [http-nio-8080-exec-1] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:12.843 ERROR 8924 --- [http-nio-8080-exec-1] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:12.844 ERROR 8924 --- [http-nio-8080-exec-1] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:12.844 ERROR 8924 --- [http-nio-8080-exec-1] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:12.844 ERROR 8924 --- [http-nio-8080-exec-1] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:12.847 ERROR 8924 --- [http-nio-8080-exec-1] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:12.847 ERROR 8924 --- [http-nio-8080-exec-1] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:12.847 ERROR 8924 --- [http-nio-8080-exec-1] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:12.847 ERROR 8924 --- [http-nio-8080-exec-1] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:12.849 ERROR 8924 --- [http-nio-8080-exec-1] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:12.850 ERROR 8924 --- [http-nio-8080-exec-1] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:12.851 ERROR 8924 --- [http-nio-8080-exec-1] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:12.851 ERROR 8924 --- [http-nio-8080-exec-1] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:12.851 ERROR 8924 --- [http-nio-8080-exec-1] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:15:15.315 ERROR 8924 --- [ForkJoinPool-1-worker-12] application                              : Error pars url https://et-cetera.ru/mobile/news/Premera_spektaklya_451_po_Farengeytu669/  java.net.SocketTimeoutException: Read timed out
+2023-03-25 20:20:07.738  INFO 21780 --- [main] searchengine.Application                 : Starting Application using Java 19.0.2 on DESKTOP-EBV2481 with PID 21780 (C:\Scillbocs\java_basics\searchengine\target\classes started by taras in C:\Scillbocs\java_basics\searchengine)
+2023-03-25 20:20:07.741  INFO 21780 --- [main] searchengine.Application                 : No active profile set, falling back to 1 default profile: "default"
+2023-03-25 20:20:08.455  INFO 21780 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2023-03-25 20:20:08.538  INFO 21780 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 72 ms. Found 4 JPA repository interfaces.
+2023-03-25 20:20:09.588  INFO 21780 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8080 (http)
+2023-03-25 20:20:09.601  INFO 21780 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2023-03-25 20:20:09.601  INFO 21780 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.64]
+2023-03-25 20:20:09.726  INFO 21780 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2023-03-25 20:20:09.727  INFO 21780 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1927 ms
+2023-03-25 20:20:09.939  INFO 21780 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2023-03-25 20:20:10.133  INFO 21780 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2023-03-25 20:20:10.208  INFO 21780 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2023-03-25 20:20:10.270  INFO 21780 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.9.Final
+2023-03-25 20:20:10.449  INFO 21780 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2023-03-25 20:20:10.592  INFO 21780 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2023-03-25 20:20:11.271  INFO 21780 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2023-03-25 20:20:11.278  INFO 21780 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2023-03-25 20:20:12.071  WARN 21780 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2023-03-25 20:20:12.250  INFO 21780 --- [main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page template: index
+2023-03-25 20:20:12.503  INFO 21780 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8080 (http) with context path ''
+2023-03-25 20:20:12.514  INFO 21780 --- [main] searchengine.Application                 : Started Application in 5.322 seconds (JVM running for 5.952)
+2023-03-25 20:21:01.475  INFO 21780 --- [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2023-03-25 20:21:01.476  INFO 21780 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2023-03-25 20:21:01.478  INFO 21780 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
