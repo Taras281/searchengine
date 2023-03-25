@@ -1,30 +1,25 @@
 package searchengine.lemmatization;
 
 import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 import searchengine.config.ApplicationContextHolder;
 import java.util.ArrayDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
+@Component
 public class SubLemmatizatorController {
-    private static SubLemmatizatorController instance;
     private ArrayDeque<String> dequeLinksForLematizator;
     private ExecutorService es;
     private ApplicationContext context;
     private LemmatizatorServiсeImpl lematizatorServise;
 
-    SubLemmatizatorController(){
-        dequeLinksForLematizator = new ArrayDeque<>(1000);
+    SubLemmatizatorController(LemmatizatorServiсeImpl lematizatorServise){
+        dequeLinksForLematizator = new ArrayDeque<>();
         context = ApplicationContextHolder.getApplicationContext();
-        lematizatorServise = context.getBean(LemmatizatorServiсeImpl.class);
+        this.lematizatorServise = lematizatorServise;
         es = Executors.newFixedThreadPool(1);
     }
-    public static synchronized SubLemmatizatorController getInstance() {
-        if (instance == null) {
-            instance = new SubLemmatizatorController();
-        }
-        return instance;
-    }
+
     public void addDeque(String url){
         dequeLinksForLematizator.addLast(url);
         if(dequeLinksForLematizator.size()>=1){

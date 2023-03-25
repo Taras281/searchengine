@@ -27,7 +27,7 @@ class IndexingServiceImplTest {
     @Mock
     SiteRepository siteRepository;
     @InjectMocks
-    IndexingServiceImpl indexingService;
+    IndexingServiseImpl indexingService;
     @Mock
     SitesList sitesList;
     @Mock

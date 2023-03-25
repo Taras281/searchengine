@@ -10,8 +10,8 @@ import org.springframework.http.ResponseEntity;
 import searchengine.dto.responce.IndexingResponseOk;
 import searchengine.dto.responce.UriForPost;
 import searchengine.dto.search.SearchResponce;
-import searchengine.services.IndexingServiceImpl;
 import searchengine.lemmatization.LemmatizatorServiсeImpl;
+import searchengine.services.IndexingServiseImpl;
 import searchengine.wordsearchresponse.SearchStatisticImplPreparationResponse;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,7 +26,7 @@ class ApiControllerTest {
     LemmatizatorServiсeImpl lematizatorServise;
 
     @Mock
-    IndexingServiceImpl indexingService;
+    IndexingServiseImpl indexingService;
     @InjectMocks
     ApiController apiController;
 
