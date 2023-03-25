@@ -35,7 +35,7 @@ APPLICATION FAILED TO START
 
 Description:
 
-Parameter 6 of constructor in searchengine.services.IndexingServiseImpl required a bean of type 'searchengine.lemmatization.SubLemmatizatorController' that could not be found.
+Parameter 6 of constructor in searchengine.services.IndexingServiceImpl required a bean of type 'searchengine.lemmatization.SubLemmatizatorController' that could not be found.
 
 
 Action:
@@ -400,3 +400,50 @@ Consider defining a bean of type 'searchengine.lemmatization.SubLemmatizatorCont
 2023-03-25 20:21:01.475  INFO 21780 --- [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
 2023-03-25 20:21:01.476  INFO 21780 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
 2023-03-25 20:21:01.478  INFO 21780 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2023-03-25 20:27:58.591  INFO 16252 --- [main] searchengine.Application                 : Starting Application using Java 19.0.2 on DESKTOP-EBV2481 with PID 16252 (C:\Scillbocs\java_basics\searchengine\target\classes started by taras in C:\Scillbocs\java_basics\searchengine)
+2023-03-25 20:27:58.594  INFO 16252 --- [main] searchengine.Application                 : No active profile set, falling back to 1 default profile: "default"
+2023-03-25 20:27:59.297  INFO 16252 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2023-03-25 20:27:59.380  INFO 16252 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 72 ms. Found 4 JPA repository interfaces.
+2023-03-25 20:28:01.170  INFO 16252 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8080 (http)
+2023-03-25 20:28:01.183  INFO 16252 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2023-03-25 20:28:01.183  INFO 16252 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.64]
+2023-03-25 20:28:01.302  INFO 16252 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2023-03-25 20:28:01.302  INFO 16252 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2648 ms
+2023-03-25 20:28:01.509  INFO 16252 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2023-03-25 20:28:01.679  INFO 16252 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2023-03-25 20:28:01.737  INFO 16252 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2023-03-25 20:28:01.786  INFO 16252 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.9.Final
+2023-03-25 20:28:01.980  INFO 16252 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2023-03-25 20:28:02.099  INFO 16252 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2023-03-25 20:28:02.764  INFO 16252 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2023-03-25 20:28:02.771  INFO 16252 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2023-03-25 20:28:03.528  WARN 16252 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2023-03-25 20:28:03.687  INFO 16252 --- [main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page template: index
+2023-03-25 20:28:03.910  INFO 16252 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8080 (http) with context path ''
+2023-03-25 20:28:03.920  INFO 16252 --- [main] searchengine.Application                 : Started Application in 5.838 seconds (JVM running for 6.494)
+2023-03-25 20:28:14.836  INFO 16252 --- [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2023-03-25 20:28:14.836  INFO 16252 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2023-03-25 20:28:14.837  INFO 16252 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2023-03-25 20:28:17.383 ERROR 16252 --- [ForkJoinPool-1-worker-9] application                              : Error pars url https://nikoartgallery.com/afisha/aleksey-lyubimov-brams-ostorozhnaya-strastnost-/  org.jsoup.HttpStatusException: HTTP error fetching URL. Status=500, URL=[https://nikoartgallery.com/afisha/aleksey-lyubimov-brams-ostorozhnaya-strastnost-/]
+2023-03-25 20:28:17.636 ERROR 16252 --- [ForkJoinPool-1-worker-9] application                              : Error pars url https://nikoartgallery.com/afisha/sergey-mkrtichyan-skripka/  org.jsoup.HttpStatusException: HTTP error fetching URL. Status=500, URL=[https://nikoartgallery.com/afisha/sergey-mkrtichyan-skripka/]
+2023-03-25 20:28:18.312 ERROR 16252 --- [ForkJoinPool-1-worker-9] application                              : Error pars url https://nikoartgallery.com/afisha/varsenik-avanyan-metstso-soprano-karina-pogosbekova-f-no-armyanskiy-romans-19-21vv/  org.jsoup.HttpStatusException: HTTP error fetching URL. Status=500, URL=[https://nikoartgallery.com/afisha/varsenik-avanyan-metstso-soprano-karina-pogosbekova-f-no-armyanskiy-romans-19-21vv/]
+2023-03-25 20:28:19.955 ERROR 16252 --- [ForkJoinPool-1-worker-9] application                              : Error pars url https://nikoartgallery.com/afisha/masm-v-peyzazhe-vasks-vustin-adams-pyart-keydzh-karmanov/  org.jsoup.HttpStatusException: HTTP error fetching URL. Status=500, URL=[https://nikoartgallery.com/afisha/masm-v-peyzazhe-vasks-vustin-adams-pyart-keydzh-karmanov/]
+2023-03-25 20:28:20.533 ERROR 16252 --- [ForkJoinPool-1-worker-1] application                              : Error pars url https://nikoartgallery.com/afisha/yuliya-igonina-i-druzya/  org.jsoup.HttpStatusException: HTTP error fetching URL. Status=500, URL=[https://nikoartgallery.com/afisha/yuliya-igonina-i-druzya/]
+2023-03-25 20:28:31.062 ERROR 16252 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:28:31.062 ERROR 16252 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:28:31.063 ERROR 16252 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:28:31.065 ERROR 16252 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:28:31.066 ERROR 16252 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:28:31.066 ERROR 16252 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:28:31.070 ERROR 16252 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:28:31.074 ERROR 16252 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:28:31.075 ERROR 16252 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:28:31.075 ERROR 16252 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:28:31.075 ERROR 16252 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:28:31.075 ERROR 16252 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:28:31.080 ERROR 16252 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:28:31.081 ERROR 16252 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:28:31.081 ERROR 16252 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:28:31.081 ERROR 16252 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:28:31.085 ERROR 16252 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter
+2023-03-25 20:28:31.086 ERROR 16252 --- [http-nio-8080-exec-6] application                              : org.apache.lucene.morphology.WrongCharaterException: Symbol   is not small cirillic letter

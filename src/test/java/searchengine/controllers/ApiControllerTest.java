@@ -11,7 +11,7 @@ import searchengine.dto.responce.IndexingResponseOk;
 import searchengine.dto.responce.UriForPost;
 import searchengine.dto.search.SearchResponce;
 import searchengine.lemmatization.LemmatizatorServiсeImpl;
-import searchengine.services.IndexingServiseImpl;
+import searchengine.services.IndexingServiceImpl;
 import searchengine.wordsearchresponse.SearchStatisticImplPreparationResponse;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,7 +26,7 @@ class ApiControllerTest {
     LemmatizatorServiсeImpl lematizatorServise;
 
     @Mock
-    IndexingServiseImpl indexingService;
+    IndexingServiceImpl indexingService;
     @InjectMocks
     ApiController apiController;
 

@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 @Service
 
-public class IndexingServiseImpl implements IndexingService {
+public class IndexingServiceImpl implements IndexingService {
 
     private SiteRepository siteRepository;
 
@@ -50,7 +50,7 @@ public class IndexingServiseImpl implements IndexingService {
     }
 
     private Label myLabel;
-    public IndexingServiseImpl(SiteRepository siteRepository, PageRepository pageReposytory, UserAgent userAgent, SitesList sitesList, Label label, Logger logger, SubLemmatizatorController subLemmatizatorController) {
+    public IndexingServiceImpl(SiteRepository siteRepository, PageRepository pageReposytory, UserAgent userAgent, SitesList sitesList, Label label, Logger logger, SubLemmatizatorController subLemmatizatorController) {
         this.siteRepository = siteRepository;
         this.pageReposytory = pageReposytory;
         this.sitesList = sitesList;
