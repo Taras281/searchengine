@@ -114,20 +114,24 @@ public class IndexingServiceImpl implements IndexingService {
     private void startIndexing() {
         forkJoinPool =  new ForkJoinPool();
         listTask = new ArrayList<>();
-        for(Site site: sitesList.getSites()){
+        for(Site site: sitesList.getSites()) {
             String url = site.getUrl();
-            siteRepository.deleteByUrl(url);
+            if (siteRepository.findByUrl(url) != null) {
+                siteRepository.deleteByUrl(url);
+            }
             searchengine.model.Site siteInBase = returnModelSite(StatusEnum.INDEXING, getDataTime(), "", url, site.getName());
-            synchronized (siteRepository){
+            synchronized (siteRepository) {
                 siteRepository.save(siteInBase);
             }
             Set notEyetParsingLinkWhereStopedUser = new HashSet();
             parserForkJoin = new ParserForkJoin(url, siteInBase, url, notEyetParsingLinkWhereStopedUser);
-            parserForkJoin.blockWorkForkJoin=false;
+            parserForkJoin.blockWorkForkJoin = false;
             listTask.add(parserForkJoin);
-            new Thread(()->{forkJoinPool.invoke(parserForkJoin);
-                siteInBase.setStatus(StatusEnum.INDEXED);
-                siteRepository.save(siteInBase);
+        }
+            for (ParserForkJoin pfj: listTask){
+            new Thread(()->{forkJoinPool.invoke(pfj);
+                pfj.getSite().setStatus(StatusEnum.INDEXED);
+                siteRepository.save(pfj.getSite());
                 }).start();
         }
     }
@@ -164,6 +168,10 @@ public class IndexingServiceImpl implements IndexingService {
             private static Boolean blockWorkForkJoin;
             private searchengine.model.Site site;
             static private Set<String> errorLinks;
+
+            public searchengine.model.Site getSite(){
+                return site;
+            }
 
             public ParserForkJoin(String link, searchengine.model.Site site, String marker, Set notEyetParsingLinkWhereStopedUser) {
                 this.link = link;

@@ -20,7 +20,7 @@ public class Page {
     private long id;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    //@OnDelete(action = OnDeleteAction.CASCADE)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(referencedColumnName = "id")
     private Site site;
 

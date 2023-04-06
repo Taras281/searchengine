@@ -33,11 +33,11 @@ spring:
 
 indexing-settings:
   sites:
-    - url: https://nikoartgallery.com/
-      name: Galerey Nikola
+    - url: https://www.svetlovka.ru
+      name: Librory
     - url: https://www.playback.ru
       name: PlayBack.Ru
-    - url: https://et-cetera.ru/mobile/
+    - url: https://et-cetera.ru/mobile
       name: Theatre
 
 
