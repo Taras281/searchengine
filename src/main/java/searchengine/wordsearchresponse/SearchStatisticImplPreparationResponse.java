@@ -64,10 +64,11 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
         int start = offset>=resultSearch.size()?resultSearch.size()-1:offset;
         int dif = Math.abs(resultSearch.size()-start);
         int stop = limit>dif?dif:limit;
-        DetailedStatisticsSearch[] detailedStatisticsSearches = new DetailedStatisticsSearch[dif];
+        DetailedStatisticsSearch[] detailedStatisticsSearches = new DetailedStatisticsSearch[stop];
         for(int i = start; i<start+stop; i++){
             DetailedStatisticsSearch item = new DetailedStatisticsSearch();
             item.setRelevance(resultSearch.get(i).getValue()[0]);
+            item.setUri(resultSearch.get(i).getKey().getPath());
             item.setTitle(getTitle(resultSearch.get(i).getKey().getContent()));
             Optional<Site> site = siteRepository.findById(resultSearch.get(i).getKey().getSite().getId());
             item.setSite(site.get().getUrl());

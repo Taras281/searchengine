@@ -23,6 +23,8 @@ import searchengine.repository.IndexRepository;
 import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
+import searchengine.services.ExceptionNotUrl;
+
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.io.IOException;
@@ -35,7 +37,7 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    private String pathParsingLink;
+    private Page page;
     @Autowired
     IndexRepository indexReposytory;
 
@@ -56,8 +58,6 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
     @Autowired
     UserAgent userAgent;
 
-    @Autowired
-    SitesList sitesList;
 
     @Autowired
     IndexingResponseNotOk indexingResponseNotOk;
@@ -70,6 +70,8 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
 
     @Autowired
     Logger logger;
+    @Autowired
+    private SitesList sitesList;;
 
     private boolean rewritePage;
 
@@ -77,13 +79,14 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
         this.rewritePage = rewritePage;
     }
     public ResponseEntity<IndexingResponse> getResponse(String uri) {
+        page = getPageFromUri(uri);
         if(!validUri(uri)){
             indexingResponseNotOk.setError(myLabel.getThisPageOutSite());
             indexingResponseNotOk.setError("check url");
             return new ResponseEntity<>(indexingResponseNotOk, HttpStatus.NOT_FOUND);
         }
         if (uriContainsSiteList(uri))
-        {   this.setPathParsingLink(uri);
+        {   //this.setPathParsingLink(uri);
             this.setRewritePage(true);
             this.runing();
             indexingResponseOk.setResult(true);
@@ -102,23 +105,23 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
         return sitesList.getSites().stream().map(l-> uri.contains(l.getUrl())).anyMatch(b->b==true);
     }
 
-
-
     public void runing() {
-        writeBaseLemsTableIndex(pathParsingLink);
+        writeBaseLemsTableIndex(page);
     }
 
-    public void setPathParsingLink(String pathParsingLink) {
-        this.pathParsingLink = pathParsingLink;
+    public void setPathParsingLink(Page page) {
+        this.page = page;
     }
 
-    public void writeBaseLemsTableIndex(String pathToBase) {
-            Page page = pageReposytory.findByPath(pathToBase);
-            Site site = getSite(pathToBase);
-            pageReposytory.flush();
-            siteReposytory.flush();
+    public void writeBaseLemsTableIndex(Page page) {
+            //Page page = pageReposytory.findById(pageIn.getId()).get();
+            //Site site = getSite(pathToBase);
+            Site site = page.getSite();
+            //pageReposytory.flush();
+            //siteReposytory.flush();
             if(rewritePage){
-                page = rewritePage(page, site, pathToBase);
+                //page = rewritePage(page, site, pathToBase);
+                pageReposytory.save(page);
             }
             if (page==null){
                 return;
@@ -127,14 +130,14 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
         HashMap<String, Integer> lemsFromPage = lematizator.getLems(content);
         // надо получить все леммы и индексы которые есть в базе для текущей страници
         // леммы получить по списку лем со страници
-        // при создании индексов сначала создать для уже существующих лемм, а затем для новых лемм
+        // при создании индексов сначала создать  для уже существующих лемм, а затем для новых лемм
         // которых нет записать (создать список еще не записанных лемм. и из них слелать список индексов)
-        List<Lemma> lemmaFromBase = getLemmsOptionTwo(lemsFromPage);
+        List<Lemma> lemmaFromBase = getLemmsOptionTwo(lemsFromPage);// пересоздаем леммы для БД из слов которые есть на странице
         HashMap<String, Integer> nameLemmaNoYetWriteBase = getLemsNotYetWriteBase(lemsFromPage, lemmaFromBase);
         List<Lemma> lemmaNoYetWriteBase = getListLemmsForSaveBase(nameLemmaNoYetWriteBase, site, lemmaFromBase);
         lemmaFromBase.addAll(lemmaNoYetWriteBase);
         List<Index> indexFromBaseOptionTwoo = getIndex(lemmaFromBase, page);
-        entityManager.flush();
+        //entityManager.flush();
         lemmaReposytory.saveAll(lemmaFromBase);
         indexReposytory.saveAll(indexFromBaseOptionTwoo);
     }
@@ -244,5 +247,54 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
         return null;
     }
 
+    private Page getPageFromUri(String uri) {
+        ArrayList<String> listUri = (ArrayList<String>) sitesList.getSites().stream().map(s->s.getUrl()).collect(Collectors.toList());
+        Page p=null;
+        for(String site: listUri){
+            if(uri.contains(site)){
+                Site s = siteReposytory.findByUrl(site);
+                String urlForPath = null;
+                try {
+                    urlForPath = remoovePrefix(s, uri);
+                } catch (ExceptionNotUrl e) {
+                    logger.error("LematizatorServiseImpl " + e);
+                }
+                p = pageReposytory.findByPathAndSite(urlForPath, s);
+                if(p!=null){
+                    pageReposytory.delete(p);
+                }
+                Document document = getDocument(uri);
+                int statusResponse = document.connection().response().statusCode();
+                p =  new Page(1, s, urlForPath,
+                        statusResponse, document.head().toString()+document.body().toString());
+                p=pageReposytory.save(p);
+            }
+        }
+        return p;
+
+    }
+
+    private String remoovePrefix(searchengine.model.Site site, String url) throws ExceptionNotUrl {
+        if (!url.contains(site.getUrl())) {
+            throw new ExceptionNotUrl();
+        }
+        String result=url.replaceAll(site.getUrl(),"");
+        return result;
+    }
+
+    private Document getDocument(String url) {
+        Document document = null;
+        try {
+            document = Jsoup.connect(url)
+                    .userAgent(userAgent.getUserAgent())
+                    .referrer(userAgent.getReferrer())
+                    .get();
+        } catch (IOException e) {
+            synchronized (url){
+                String error = "Error pars url " + url + "  " +e.toString();
+            }
+        }
+        return document;
+    }
 
 }

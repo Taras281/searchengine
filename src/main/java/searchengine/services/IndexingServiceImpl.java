@@ -21,8 +21,10 @@ import searchengine.lemmatization.SubLemmatizatorController;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -95,7 +97,7 @@ public class IndexingServiceImpl implements IndexingService {
     private IndexingResponse createResponseNotOk() {
         IndexingResponseNotOk indexingResponseNotOk = new IndexingResponseNotOk();
         indexingResponseNotOk.setResult(false);
-        indexingResponseNotOk.setError(myLabel.getIndexingNotStarted());
+        indexingResponseNotOk.setError(myLabel.getIndexingStarted());
         return indexingResponseNotOk;
 
     }
@@ -114,24 +116,39 @@ public class IndexingServiceImpl implements IndexingService {
     private void startIndexing() {
         forkJoinPool =  new ForkJoinPool();
         listTask = new ArrayList<>();
+        siteRepository.deleteAll();
         for(Site site: sitesList.getSites()) {
             String url = site.getUrl();
-            if (siteRepository.findByUrl(url) != null) {
-                siteRepository.deleteByUrl(url);
-            }
             searchengine.model.Site siteInBase = returnModelSite(StatusEnum.INDEXING, getDataTime(), "", url, site.getName());
+            searchengine.model.Site siteFromBase=null;
+            Set<String> errorLinks = new HashSet<>();
+            Set<String> notEyetParsingLinkWhereStopedUser = new HashSet<>();
             synchronized (siteRepository) {
-                siteRepository.save(siteInBase);
+                siteFromBase = siteRepository.save(siteInBase);
             }
-            Set notEyetParsingLinkWhereStopedUser = new HashSet();
-            parserForkJoin = new ParserForkJoin(url, siteInBase, url, notEyetParsingLinkWhereStopedUser);
-            parserForkJoin.blockWorkForkJoin = false;
+            parserForkJoin =  new ParserForkJoin(url, url, siteFromBase, errorLinks, notEyetParsingLinkWhereStopedUser);
+            ParserForkJoin.blockWorkForkJoin = false;
             listTask.add(parserForkJoin);
         }
+            AtomicInteger counterStopedPfj= new AtomicInteger();
             for (ParserForkJoin pfj: listTask){
-            new Thread(()->{forkJoinPool.invoke(pfj);
+            new Thread(()->{
+                logger.error("strt pfj " + pfj.link);
+                long start = System.currentTimeMillis();
+                forkJoinPool.invoke(pfj);
+                counterStopedPfj.incrementAndGet();
                 pfj.getSite().setStatus(StatusEnum.INDEXED);
                 siteRepository.save(pfj.getSite());
+                if(counterStopedPfj.get()==listTask.size()){
+                    try {
+                        getStopIndexing();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                logger.error("pfj stop " + pfj.link + " "+pfj.marker);
+                logger.error("forkjoin " + forkJoinPool.toString());
+                System.out.println("TIME PARSING " +(System.currentTimeMillis()-start)/1000 + " c");
                 }).start();
         }
     }
@@ -163,80 +180,203 @@ public class IndexingServiceImpl implements IndexingService {
 
         public class ParserForkJoin extends RecursiveTask<Set<String>>{
             private  Set<String> notEyetParsingLinkWhereStopedUser;
-            String link;
-            private String marker;
+            private String link;
             private static Boolean blockWorkForkJoin;
+            private String marker;
             private searchengine.model.Site site;
-            static private Set<String> errorLinks;
+            private Set<String> errorLinks;
+            private static long counter=0;
+
+            public ParserForkJoin(String link, String marker, searchengine.model.Site site, Set<String> errorLinks, Set<String> notEyetParsingLinkWhereStopedUser) {
+                this.link = link;
+                this.marker=marker;
+                this.site=site;
+                this.errorLinks=errorLinks;
+                this.notEyetParsingLinkWhereStopedUser = notEyetParsingLinkWhereStopedUser;
+            }
 
             public searchengine.model.Site getSite(){
                 return site;
             }
 
-            public ParserForkJoin(String link, searchengine.model.Site site, String marker, Set notEyetParsingLinkWhereStopedUser) {
-                this.link = link;
-                this.marker = marker;
-                this.notEyetParsingLinkWhereStopedUser = notEyetParsingLinkWhereStopedUser;
-                if(errorLinks==null){
-                    errorLinks = new HashSet<>();
-                }
-                this.site=site;
-            }
 
             @Override
             protected Set<String> compute() {
                 Set<String> resultSet = new HashSet<>();
                 if(!blockWorkForkJoin){
-                    resultSet.add(link);
-                    Set<String> links = pars(link);
-                    List<ParserForkJoin> parserTask = new ArrayList<>();
-                    for(String l:links){
-                        ParserForkJoin p = new ParserForkJoin(l, site, marker, notEyetParsingLinkWhereStopedUser);
-                        p.fork();
-                        parserTask.add(p);
+                        resultSet.add(link);
+                        Set<String> links = pars(link);
+                        List<ParserForkJoin> parserTask = new ArrayList<>();
+                        for(String l:links){
+                            ParserForkJoin p = new ParserForkJoin(l, marker, site, errorLinks, notEyetParsingLinkWhereStopedUser);
+                            parserTask.add(p);
+                            p.fork();
+                            ++counter;
+                        }
+                        for(ParserForkJoin p:parserTask){
+                            resultSet.addAll(p.join());
+                            --counter;
+                            System.out.println("p+  " + p.link);
+                        }
                     }
-                    for(ParserForkJoin p:parserTask){
-                        resultSet.addAll(p.join());
-                    }
-                }
+                System.out.println("counter  " + counter);
+                System.out.println(Thread.getAllStackTraces());
                 return resultSet;
             }
 
-            private Set<String> pars(String url){
-                Set setUrlinPage = new HashSet<>();
-                if ((!validUrl(url))||(!contaning(url, marker))|| errorLinks.contains(url)) {
+            private synchronized Set<String> pars(String url){
+                System.out.println("url "+ url);
+                System.out.println("1");
+                Set<String> setUrlinPage = new HashSet<>();
+                System.out.println("2");
+                /*if ((!validUrl(url))||(!contaning(url, marker))||errorLinks.contains(url)) {
                     notEyetParsingLinkWhereStopedUser.remove(url);
                     return setUrlinPage;
-                }
+                }*/
                 Document document = getDocument(url);
+                System.out.println("3");
                 if (document == (null)) {
+                    System.out.println("4");
                     notEyetParsingLinkWhereStopedUser.remove(url);
+                    System.out.println("5");
+                    errorLinks.add(url);
+                    System.out.println("6");
                     return setUrlinPage;
                 }
+                System.out.println("7");
                 int statusResponse = document.connection().response().statusCode();
-                synchronized (pageReposytory){
-                    if (dontContained((url))) {
-                        pageReposytory.save(new Page((int) (pageReposytory.count() + 1), site, url, statusResponse, document.head().toString()+document.body().toString()));
+               // synchronized (pageReposytory){
+                System.out.println("8");
+                    String urlForPath="";
+                    try {
+                        System.out.println("9");
+                        urlForPath = remoovePrefix(site,url);
+                    } catch (ExceptionNotUrl e) {
+                        System.out.println("10");
+                        return setUrlinPage;
+                    }
+                System.out.println("11");
+                    Page page = null;
+                System.out.println("12");
+                    page = new Page(1, site, urlForPath,
+                            statusResponse, document.head().toString()+document.body().toString());
+                System.out.println("13");
+                   if (dontContained((page)))
+                    {
+                        System.out.println("14");
+                        try {
+                            synchronized (pageReposytory){
+                                page = pageReposytory.save(page);
+                            }
+                        }
+                        catch (Exception sqe){
+                            logger.error("sqe "+ sqe);
+                        }
+
+                        System.out.println("15");
                         setTime(site);
-                        startLematization(url);
+                        startLematization(page);
                     }
                     else{
+                       System.out.println("16");
                         notEyetParsingLinkWhereStopedUser.remove(url);
+                       System.out.println("17");
                         return setUrlinPage;
-                    }}
-                setUrlinPage = getSetUrlInPage(document);
+                    }
+                System.out.println("18");
+                    setUrlinPage = getSetUrlInPage(document);
+                    //System.out.println("16");
+                    //setUrlinPage.removeAll(errorLinks);
+                System.out.println("19");
+                    setUrlinPage.add(url);
+                System.out.println("20");
+                    setUrlinPage = reduseList(setUrlinPage, site);
+                //}
+                System.out.println("21");
                 if(!blockWorkForkJoin){
+                    System.out.println("22");
                     notEyetParsingLinkWhereStopedUser.addAll(setUrlinPage);
+                    System.out.println("23");
                     notEyetParsingLinkWhereStopedUser.remove(url);
                 }
+                System.out.println("24");
+                System.out.println(url);
+                System.out.println("setUrlinPage " + setUrlinPage.size() + " " + setUrlinPage.toString());
                 return setUrlinPage;
+            }
+
+            private Set reduseList(Set<String> setUrlinPage, searchengine.model.Site site) {
+                String prefix = site.getUrl();
+                Set<String> urlSetWithoutPrefix = new HashSet<>();
+                for(String url: setUrlinPage){
+                    try {
+                        urlSetWithoutPrefix.add(remoovePrefix(site, url));
+                    } catch (ExceptionNotUrl e) {
+                        continue;
+                    }
+                }
+                Set<Page> pageInBase=null;
+                try{
+                    pageInBase = pageReposytory.findAllBySiteAndPathIn(site, urlSetWithoutPrefix);
+                }
+                catch (Exception ecp)
+                {
+                    logger.error("PAGEINBASE" + ecp);
+                }
+
+                Set<String> listUrlInBase = new HashSet<>();
+                if(pageInBase.size()>0){
+                    for(Page pageinbase: pageInBase){
+                        listUrlInBase.add(pageinbase.getPath());
+                    }
+                }
+                urlSetWithoutPrefix.removeAll(listUrlInBase);
+                Set<String> result = new HashSet<>();
+                for (String link: urlSetWithoutPrefix){
+                    result.add(prefix+link);
+                }
+                //Set<String> result = (Set<String>) urlSetWithoutPrefix.stream().map(link->prefix+link).collect(Collectors.toList());
+
+                /*
+                for(String s: urlSet){
+                    String url = prefix+s;
+                    if ((validUrl(url))||(contaning(url, marker))||!errorLinks.contains(url)) {
+                        result.add(url);
+                    }
+                }*/
+                return result;
+            }
+
+            private String remoovePrefix(searchengine.model.Site site, String url) throws ExceptionNotUrl {
+                if (!url.contains(site.getUrl())) {
+                        throw new ExceptionNotUrl();
+                    }
+                String result=url.replaceAll(site.getUrl(),"");
+                return result;
             }
 
             private Set getSetUrlInPage(Document document) {
                 Elements links = document.select("a[href]");
                 Set<String> linkss= links.stream().map(link-> link.attr("abs:href")).collect(Collectors.toSet());
-                return getSetLinkAfterCheckConsistBase(linkss).stream()
-                        .filter(link->(contaning(link, marker) && validUrl(link) && !link.isEmpty())).collect(Collectors.toSet());
+                Set<String> res = getSetLinkAfterCheckConsistBase(linkss).stream()
+                        .filter(link->(contaning(link, marker) && validUrl(link)
+                                && !link.isEmpty()&&!errorLinks.contains(link)&& !notEyetParsingLinkWhereStopedUser.contains(link)
+                                && dontCrazyYear(link))).collect(Collectors.toSet());
+                return res;
+            }
+
+            public boolean dontCrazyYear(String link) {
+                String regex = ".+\\?.+year=\\d{4}.*";
+                int year = LocalDateTime.now().getYear();
+                String s=String.valueOf(year);
+                if(link.matches(regex)){
+                    int index= link.indexOf("year=")+5;
+                    s = link.substring(index,index+4);
+
+                }
+                boolean res = Integer.parseInt(s)>year+1?false:true;
+                boolean res2 = Integer.parseInt(s)<year-1?false:true;
+                return (res&&res2);
             }
 
             private Document getDocument(String url) {
@@ -251,14 +391,13 @@ public class IndexingServiceImpl implements IndexingService {
                         String error = "Error pars url " + url + "  " +e.toString();
                         sendErrorBase(error);
                         errorLinks.add(url);
-                        logger.error(error);
                     }
                 }
                 return document;
             }
 
-            private void startLematization(String url) {
-                subLemmatizatorController.addDeque(url);
+            private void startLematization(Page page) {
+                subLemmatizatorController.addDeque(page);
             }
 
 
@@ -283,7 +422,8 @@ public class IndexingServiceImpl implements IndexingService {
             }
 
             private boolean validUrl(String url) {
-                return url.matches("https?://.*")&&!url.matches(".*#")&&!url.matches(".*(jpg|jpeg|JPG|png|bmp|pdf|mp4|WebM|js)");
+                boolean res = url.matches("https?://.*")&&!url.matches(".*#")&&!url.matches(".*(jpg|jpeg|JPG|png|bmp|pdf|mp4|WebM|js)");
+                return res;
             }
 
 
@@ -292,9 +432,16 @@ public class IndexingServiceImpl implements IndexingService {
                 synchronized (pageReposytory){
                     synchronized (notEyetParsingLinkWhereStopedUser){
                         for(String url: notEyetParsingLinkWhereStopedUser){
-                            if(dontContained(url)){
-                                pageReposytory.save(new Page((int)pageReposytory.count()+1, site, url,
-                                        418, myLabel.getIndexingStopedUser()));
+                            Page p=null;
+                            try { p = new Page((int)pageReposytory.count()+1, site, remoovePrefix(site,url),
+                                    418, myLabel.getIndexingStopedUser());
+                            } catch (ExceptionNotUrl e) {
+                                continue;
+                            }
+                            if(dontContained(p)){
+                                    pageReposytory.save(p);
+                                    sendErrorBase("Stopped indexing user");
+
                             }
                         }
                     }
@@ -322,15 +469,27 @@ public class IndexingServiceImpl implements IndexingService {
                     siteRepository.save(site);
                 }
             }
+            private boolean dontContained(Page page) {
+                Page p=null;
+                try{
+                    p= pageReposytory.findByPathAndSite(page.getPath(), page.getSite());
+                }
+                catch (Exception ecp)
+                {
+                    logger.error("dontContained " + ecp);
+                }
 
-
-            private boolean dontContained(String absLink) {
-                Set<Page> response = pageReposytory.findAllByPathIn(Set.of(absLink));
-                return response.isEmpty();
+                    return p==null?true:false;
             }
 
             private Set<String> getSetLinkAfterCheckConsistBase(Set<String> inputSet){
-                Set<Page> linkExistIntoBase = pageReposytory.findAllByPathIn(inputSet);
+                Set<Page> linkExistIntoBase=null;
+                try{
+                    linkExistIntoBase = pageReposytory.findAllByPathIn(inputSet);
+                }
+                catch (Exception e){
+                    logger.error("Exc getSetLinkAfterCheckConsistBase" + e);
+                }
                 for(Page s: linkExistIntoBase){
                     inputSet.remove(s.getPath());
                 }

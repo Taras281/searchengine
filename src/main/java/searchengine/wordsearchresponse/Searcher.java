@@ -121,7 +121,7 @@ public class Searcher {
          listIdLemm = removeDoble(listIdLemm);
          indexReposytory.flush();
          List<Index> indexList1 = getLems(listIdLemm);
-         List<Long> listPageId = indexList1.stream().map(index -> index.getPageId().getId()).collect(Collectors.toList());
+         List<Integer> listPageId = indexList1.stream().map(index -> index.getPageId().getId()).collect(Collectors.toList());
          List<Index> indexList = indexReposytory.findAllByPageIdIn(getPages(listPageId));
          return indexList.stream().filter(index -> index.getLemmaId().getId()==lemma1.getId()).collect(Collectors.toList());
     }
@@ -136,7 +136,7 @@ public class Searcher {
         return res;
     }
 
-    private List<Page> getPages(List<Long> listPageId){
+    private List<Page> getPages(List<Integer> listPageId){
         return pageReposytory.findAllByIdIn(listPageId);
     }
     private List<Index> getLems(List<Integer> listIdLemm) {

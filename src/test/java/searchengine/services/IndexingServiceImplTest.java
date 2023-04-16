@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import searchengine.config.Label;
@@ -15,6 +16,7 @@ import searchengine.dto.responce.IndexingResponseOk;
 import searchengine.repository.SiteRepository;
 
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +34,8 @@ class IndexingServiceImplTest {
     SitesList sitesList;
     @Mock
     Label label;
+    @Autowired
+    IndexingServiceImpl indexingServiceImpl;
     @Test
     void getStartResponse_IndexingNotStarted() {
         //given
@@ -64,6 +68,21 @@ class IndexingServiceImplTest {
         ResponseEntity actualResponse = indexingService.getStartResponse();
         //then
         assertEquals(responseEntity.getStatusCode(), actualResponse.getStatusCode());
+    }
+    @Test
+    void testCrazyYear(){
+        String input = "https://et-cetera.ru/mobile/poster/?month=1&year=2025";
+        String regex = ".+\\?.+year=\\d{4}.*";
+        int year = LocalDateTime.now().getYear();
+        String s=String.valueOf(year);
+        if(input.matches(regex)){
+            int index= input.indexOf("year=")+5;
+            s = input.substring(index,index+4);
+
+        }
+        boolean res = Integer.parseInt(s)>year+1?false:true;
+        boolean res2 = Integer.parseInt(s)<year-1?false:true;
+        assertEquals(true, (res2&&res));
     }
 
 

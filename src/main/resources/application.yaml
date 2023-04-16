@@ -35,10 +35,12 @@ indexing-settings:
   sites:
     - url: https://www.svetlovka.ru
       name: Librory
-    - url: https://www.playback.ru
-      name: PlayBack.Ru
     - url: https://et-cetera.ru/mobile
       name: Theatre
+    - url: https://www.playback.ru
+      name: PlayBack.Ru
+
+
 
 
 
@@ -52,6 +54,10 @@ indexing-agent:
 logging:
   file:
     name: Log\logging
+  level:
+    org:
+     springframework:
+       web: DEBUG
 
 
 ---

@@ -18,5 +18,14 @@ public interface PageRepository extends JpaRepository<Page, Long> {
 
     ArrayList<Page> findAllBySite(Site siteModel);
 
-    List<Page> findAllByIdIn(List<Long> listPageId);
+    List<Page> findAllByIdIn(List<Integer> listPageId);
+
+    Page findTopByOrderByIdDesc();
+
+    String findByContent(String content);
+
+
+    Page findByPathAndSite(String path, Site site);
+
+    Set<Page> findAllBySiteAndPathIn(Site site, Set<String> urlSet);
 }

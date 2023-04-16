@@ -6,25 +6,26 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import javax.persistence.*;
+import javax.persistence.Index;
 
 
 @Data
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name="page")
+@Table(name="page", indexes = {@Index(name = "index_page", columnList = "path")})
 public class Page {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
-    private long id;
+    private int id;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.MERGE)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(referencedColumnName = "id")
     private Site site;
 
-    @Column(columnDefinition = "TEXT NOT NULL, INDEX path (path(50))")
+    @Column(columnDefinition = "varchar(250) NOT NULL")
     private String path;
 
     @Column(nullable = false)
