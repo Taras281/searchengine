@@ -4,7 +4,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -54,20 +53,14 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
     Lemmatizator lematizator;
     @Autowired
     SitesList siteList;
-
     @Autowired
     UserAgent userAgent;
-
-
     @Autowired
     IndexingResponseNotOk indexingResponseNotOk;
-
     @Autowired
     IndexingResponseOk indexingResponseOk;
-
     @Autowired
     Label myLabel;
-
     @Autowired
     Logger logger;
     @Autowired
@@ -132,9 +125,9 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
         // леммы получить по списку лем со страници
         // при создании индексов сначала создать  для уже существующих лемм, а затем для новых лемм
         // которых нет записать (создать список еще не записанных лемм. и из них слелать список индексов)
-        List<Lemma> lemmaFromBase = getLemmsOptionTwo(lemsFromPage);// пересоздаем леммы для БД из слов которые есть на странице
+        List<Lemma> lemmaFromBase = getLemsFromBase(lemsFromPage);// пересоздаем леммы для БД из слов которые есть на странице
         HashMap<String, Integer> nameLemmaNoYetWriteBase = getLemsNotYetWriteBase(lemsFromPage, lemmaFromBase);
-        List<Lemma> lemmaNoYetWriteBase = getListLemmsForSaveBase(nameLemmaNoYetWriteBase, site, lemmaFromBase);
+        List<Lemma> lemmaNoYetWriteBase = getListLemmsForSaveBase(nameLemmaNoYetWriteBase, site);
         lemmaFromBase.addAll(lemmaNoYetWriteBase);
         List<Index> indexFromBaseOptionTwoo = getIndex(lemmaFromBase, page);
         //entityManager.flush();
@@ -174,16 +167,16 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
         return  indexList;
     }
 
-    private List<Lemma> getLemmsOptionTwo(HashMap<String, Integer> lemsFromPage) {
-        Set<String> key=lemsFromPage.keySet();
-        List<Lemma> list= lemmaReposytory.findAllByLemmaIn(key);
+    private List<Lemma> getLemsFromBase(HashMap<String, Integer> lemsFromPage) {
+        Set<String> keys=lemsFromPage.keySet();
+        List<Lemma> list= lemmaReposytory.findAllByLemmaIn(keys);
         for(Lemma lemma:list){
            lemma.setFrequency(lemma.getFrequency()+1);
         }
         return  list;
     }
 
-    private List<Lemma> getListLemmsForSaveBase(HashMap<String, Integer> nameLemmaNoYetWriteBase, Site site, List<Lemma> lemmaFromBase) {
+    private List<Lemma> getListLemmsForSaveBase(HashMap<String, Integer> nameLemmaNoYetWriteBase, Site site) {
         List<Lemma> result = new ArrayList<>();
         for(Map.Entry<String, Integer> entryLemma: nameLemmaNoYetWriteBase.entrySet()){
             result.add(getLemma(entryLemma, site));

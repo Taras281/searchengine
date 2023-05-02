@@ -98,8 +98,9 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
         Document document = Jsoup.parse(content);
         String body = document.body().text();
         List<String> formsNormal = getNormalFormsQeryLeters();
-        String[] arrWords = body.split(" ");
-        String[] lemmsFromtext = getLemsFromText(arrWords);
+        //String[] arrWords = body.split(" ");
+        ArrayList<String> arrWords = separated(body);
+        ArrayList<List<String>> lemmsFromtext = getLemsFromText(arrWords);
         ArrayList<Integer> indexConcidenceLemmAndWord = getIndexConcidence(lemmsFromtext, formsNormal);
         ArrayList<String> result = getMettLemsInText(arrWords, indexConcidenceLemmAndWord);
         return result.toString();
@@ -108,60 +109,92 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
     private String remoovePoonctuationMarks(String body) {
         return body.replaceAll("[^\u0410-\u044F\u0451\u0401]", " ");
     }
+    private  ArrayList<String> separated(String input) {
+        int start = 0;
+        int stop = 0;
+        ArrayList<String> result = new ArrayList();
+        String reg = "[\u0410-\u044F\u0451\u0401]";
+        for (int i = 0; i < input.length(); i++) {
+            if (i == input.length() - 1) {
+                result.add(input.substring(input.lastIndexOf(result.get(result.size() - 1))));
+            }
 
-    private ArrayList<String> getMettLemsInText(String[] arrWords, ArrayList<Integer> indexConcidenceLemmAndWord) {
+            if (input.substring(i, i + 1).matches(reg)) {
+                continue;
+            }
+            stop = i;
+            String leter1 = input.substring(start, stop);
+            String leter2 = input.substring(stop, stop + 1);
+            if (leter1 != "") {
+                result.add(input.substring(start, stop));
+            }
+            if (leter2 != "") {
+                result.add(input.substring(stop, stop + 1));
+            }
+            start = stop + 1;
+
+        }
+        return  result;
+    }
+
+    private ArrayList<String> getMettLemsInText(ArrayList<String> arrWords, ArrayList<Integer> indexConcidenceLemmAndWord) {
         ArrayList<String> result = new ArrayList<>();
+        int ofset = 30;
         int indexStart;
         int indexStop;
-        int maxIndex = arrWords.length;
+        int maxIndex = arrWords.size();
         for(Integer id: indexConcidenceLemmAndWord){
-            indexStart = (id-15)>=0?(id-15):0;
-            indexStop= (id+15)>=maxIndex?maxIndex:(id+15);
+            indexStart = (id-ofset)>=0?(id-ofset):0;
+            indexStop= (id+ofset)>=maxIndex?maxIndex:(id+ofset);
             String start = getLine(arrWords,indexStart, id);
             String end = getLine(arrWords,id+1, indexStop);
-            result.add("<br>"+start +" "+"<b>" +arrWords[id]+"</b>"+" "+end);
+            result.add("<br>"+start +" "+"<b>" +arrWords.get(id)+"</b>"+" "+end);
         }
         return result;
     }
 
-    private String getLine(String[] arrWords, int indexStart, int indexStop) {
-       String[] res=Arrays.copyOfRange(arrWords, indexStart, indexStop);
+    private String getLine(ArrayList<String> arrWords, int indexStart, int indexStop) {
+       //String[] res=Arrays.copyOfRange(arrWords, indexStart, indexStop);
+       ArrayList<String> res= new ArrayList<>();
+       for(int i =indexStart; i<indexStop;i++){
+           res.add(arrWords.get(i));
+       }
        StringBuilder sb = new StringBuilder();
        for(String s:res){
            sb.append(s);
            sb.append(" ");
        }
        return sb.toString();
-
     }
 
-    private String[] getLemsFromText(String[] arrWords) {
-        String[] lemmsFromtext = new String[arrWords.length];
-        for(int i=0;i<arrWords.length;i++){
-            String word = arrWords[i];
+    private ArrayList<List<String>> getLemsFromText(ArrayList<String> arrWords) {
+        ArrayList<List<String>> lemmsFromtext = new ArrayList<>();
+        for(int i=0;i<arrWords.size();i++){
+            String word = arrWords.get(i);
             try{
                 word = word.toLowerCase();
-                word = remoovePoonctuationMarks(word).trim();
-                if(word.equals("")){
-                    continue;
-                }
-                String normalForm = lematizator.luceneMorph.getNormalForms(word).toString();
-                lemmsFromtext[i] = normalForm;
+                //word = remoovePoonctuationMarks(word).trim();// ошибочно делает из туда-сюда "туда сюда"   а из Браво,Браво "браво браво"
+                //if(word.equals("")){
+                //    continue;
+                //}
+                List<String> normalForm = lematizator.luceneMorph.getNormalForms(word);
+                lemmsFromtext.add(normalForm);
             }
             catch (WrongCharaterException wce){
-                lemmsFromtext[i] = "";
+                lemmsFromtext.add(Arrays.asList(word));
                 logger.error(wce.toString());
             }
         }
         return lemmsFromtext;
     }
 
-    private ArrayList<Integer> getIndexConcidence(String[] lemmsFromtext, List<String> formsNormal) {
+    private ArrayList<Integer> getIndexConcidence(ArrayList<List<String>> lemmsFromtext, List<String> formsNormal) {
         ArrayList<Integer> indexConcidenceLemmInText = new ArrayList<>();
-        for(int i=0; i< lemmsFromtext.length; i++){
-            if(lemmsFromtext[i]!=null){
+        //seacherId(lemmsFromtext);
+        for(int i=0; i< lemmsFromtext.size(); i++){
+            if(lemmsFromtext.get(i)!=null){
                 for (int j=0; j<formsNormal.size(); j++){
-                    if(lemmsFromtext[i].contains(formsNormal.get(j))){
+                    if(arrayContains(lemmsFromtext.get(i), formsNormal.get(j))){
                         indexConcidenceLemmInText.add(i);
                     }
                 }
@@ -169,6 +202,25 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
         }
         indexConcidenceLemmInText = removeDuble(indexConcidenceLemmInText);
         return indexConcidenceLemmInText;
+    }
+
+    void seacherId(ArrayList<List<String>> lemmsFromtext){
+        for(int i=0;i<lemmsFromtext.size();i++){
+             for(int j=0;j<lemmsFromtext.get(i).size();j++){
+                 if(lemmsFromtext.get(i).get(j).equals("сон")){
+                     int y =0;
+                 }
+             }
+        }
+    }
+
+    private boolean arrayContains(List<String> lemms, String normalForms) {
+        for(String lemma: lemms){
+            if(lemma.equals(normalForms)){
+                return true;
+            }
+        }
+        return  false;
     }
 
     private ArrayList<Integer> removeDuble(ArrayList<Integer> indexConcidenceLemmAndWord) {

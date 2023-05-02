@@ -52,7 +52,7 @@ public class Searcher {
        }
        Collections.sort(listLemma, new MyComparator());
        List<Lemma> reduseList = reduseList(listLemma, 200);
-       List<Page>  listPage = getPage(reduseList);
+       List<Page>  listPage = getPage(reduseList, siteId);
        if (listPage.size()<1){
            return null;
        }
@@ -89,7 +89,7 @@ public class Searcher {
     return  result;
     }
 
-    private List<Page> getPage(List<Lemma> reduseList) {
+    private List<Page> getPage(List<Lemma> reduseList, long siteId) {
         if(reduseList.size()<1){
             return new ArrayList<Page>();
         }
@@ -188,9 +188,9 @@ public class Searcher {
 
     public List<Lemma> getLemmaFromBase(Set<String> listQueryWord){
         List<Lemma> ll = lemmaReposytory.findAllByLemmaIn(listQueryWord);
-        if(!site.equals("-1")){
+        /*if(!site.equals("-1")){
             ll = ll.stream().filter(lemma -> lemma.getSite().getId()==siteId).collect(Collectors.toList());
-        }
+        }*/
         return ll;
     }
 
