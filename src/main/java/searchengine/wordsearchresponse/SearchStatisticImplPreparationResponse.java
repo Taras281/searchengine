@@ -54,6 +54,14 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
             responce.setError("результаты не найдены");
             return responce;
         }
+        if(resultSearch.get(0).getKey().getCode()==-1){
+            SearchResponce responce = new SearchResponce();
+            responce.setResult(false);
+            responce.setData(getEmptyData());
+            responce.setError("Слова - \"" +resultSearch.get(0).getKey().getPath() + "\" не найдены в базе, уберите их пожалуйста");
+            return responce;
+        }
+
         SearchResponce responce = getResponse(resultSearch);
         return responce;
     }
@@ -90,6 +98,7 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
         item.setSiteName(" ");
         item.setSite(" ");
         item.setRelevance(0);
+        item.setUri(" ");
         result[0]=item;
         return result;
     }
@@ -162,7 +171,7 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
        StringBuilder sb = new StringBuilder();
        for(String s:res){
            sb.append(s);
-           sb.append(" ");
+           //sb.append(" ");
        }
        return sb.toString();
     }

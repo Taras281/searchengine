@@ -47,6 +47,9 @@ public class Searcher {
        siteId = site.equals("-1")?-1:siteRepository.findByUrl(site).getId();
        setLemmQuery = getQeryLemma(query.trim());
        List<Lemma> listLemma = getLemmaFromBase(setLemmQuery);
+       if (excessWordQery(setLemmQuery, listLemma)!=null){
+           return excessWordQery(setLemmQuery, listLemma);
+       }
        if(listLemma.size()<1){
            return null;
        }
@@ -59,8 +62,31 @@ public class Searcher {
        HashMap<Page, float[]> relevantion = getRelevantion(listPage);
        ArrayList<Map.Entry<Page, float[]>> relevantionSorted = sort(relevantion);
        return relevantionSorted;
-
     }
+
+    private ArrayList<Map.Entry<Page, float[]>> excessWordQery(Set<String> setLemmQuery, List<Lemma> listLemma) {
+            StringBuilder diferense = new StringBuilder();
+            List<String> lems = listLemma.stream().map(lemma -> lemma.getLemma()).collect(Collectors.toList());
+            for(String word: setLemmQuery){
+                if(!lems.contains(word)){
+                    diferense.append(word);
+                    diferense.append(", ");
+                }
+            }
+            if (diferense.toString().length()>1){
+            ArrayList<Map.Entry<Page, float[]>> dontContain = new ArrayList<>();
+            Page p = new Page();
+            float[] f = new float[1];
+            p.setPath(diferense.toString());
+            p.setCode(-1);
+            HashMap<Page, float[]> res = new HashMap<>();
+            res.put(p, f);
+            dontContain.add(res.entrySet().stream().findAny().get());
+            return dontContain;
+        }
+        else return null;
+    }
+
 
     private ArrayList<Map.Entry<Page, float[]>> sort(HashMap<Page, float[]> relevantion) {
         ArrayList<Map.Entry<Page, float[]>> result = new ArrayList<>();
@@ -90,6 +116,47 @@ public class Searcher {
     }
 
     private List<Page> getPage(List<Lemma> reduseList, long siteId) {
+        /*
+        по первой лемме получить индексы, по индексам получить список страниц
+        для этого списка получить списки лемм их объединить отфильтровав по сайту
+        дальше фильтровать для каждой леммы
+         */
+        List<Index> indexFerstLemma = indexReposytory.findAllByLemmaId(reduseList.get(0));
+        List<Page> listPageFerstLemma=new ArrayList<>();
+        if (siteId!=-1){
+            listPageFerstLemma = indexFerstLemma.stream().map(index -> index.getPageId()).
+                    filter(page -> page.getSite().getId()==siteId).collect(Collectors.toList());
+        }
+        else{
+            listPageFerstLemma = indexFerstLemma.stream().map(index -> index.getPageId()).collect(Collectors.toList());
+        }
+        List<Index> listAllIndexPages = indexReposytory.findAllByPageIdIn(listPageFerstLemma);
+        reduseList.remove(0);
+        for(Lemma lemma:reduseList){
+            List<Page> pagesNextLemma = listAllIndexPages.stream().filter(l->l.getLemmaId().getId()==lemma.getId()).map(l->l.getPageId()).collect(Collectors.toList());
+            listAllIndexPages=listAllIndexPages.stream().filter(index -> pagesNextLemma.contains(index.getPageId())).collect(Collectors.toList());
+            //listAllIndexPages=listAllIndexPages.stream().filter(l->l.getLemmaId().equals(lemma)).collect(Collectors.toList());
+            if(listAllIndexPages.size()==0){
+                return new ArrayList<Page>();
+            }
+        }
+
+        List<Page> pages =  listAllIndexPages.stream().map(index -> index.getPageId()).collect(Collectors.toList());
+        pages=removeDoblePage(pages);
+        return  pages;
+    }
+
+    private List<Page> removeDoblePage(List<Page> pages) {
+        List<Page> result = new ArrayList<>();
+        for(Page page:pages){
+            if(!result.contains(page)){
+                result.add(page);
+            }
+        }
+        return result;
+    }
+
+   /* private List<Page> getPage(List<Lemma> reduseList, long siteId) {
         if(reduseList.size()<1){
             return new ArrayList<Page>();
         }
@@ -110,7 +177,7 @@ public class Searcher {
             pageList = pageList.stream().filter(page -> page.getSite().getId()==siteId).collect(Collectors.toList());
         }
         return pageList;
-    }
+    }*/
 
     private List<Index> findListLemma(List<Index> listIndex, Lemma lemma1) {
          // по списку индексов найти все индексы лемм
@@ -120,7 +187,7 @@ public class Searcher {
          List<Integer> listIdLemm = lemmaList.stream().map(lemma -> lemma.getId()).collect(Collectors.toList());
          listIdLemm = removeDoble(listIdLemm);
          indexReposytory.flush();
-         List<Index> indexList1 = getLems(listIdLemm);
+         List<Index> indexList1 = getLems(listIdLemm);//  получаем из Index  все идексы для списка лемм
          List<Integer> listPageId = indexList1.stream().map(index -> index.getPageId().getId()).collect(Collectors.toList());
          List<Index> indexList = indexReposytory.findAllByPageIdIn(getPages(listPageId));
          return indexList.stream().filter(index -> index.getLemmaId().getId()==lemma1.getId()).collect(Collectors.toList());
