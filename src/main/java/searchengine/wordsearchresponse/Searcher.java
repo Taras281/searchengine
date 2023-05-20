@@ -1,8 +1,6 @@
 package searchengine.wordsearchresponse;
 
 import lombok.Data;
-import org.hibernate.Session;
-import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import searchengine.model.Index;
@@ -59,7 +57,7 @@ public class Searcher {
        if (listPage.size()<1){
            return null;
        }
-       HashMap<Page, float[]> relevantion = getRelevantion(listPage);
+       HashMap<Page, float[]> relevantion = getRelevantion(listPage, setLemmQuery);
        ArrayList<Map.Entry<Page, float[]>> relevantionSorted = sort(relevantion);
        return relevantionSorted;
     }
@@ -99,12 +97,13 @@ public class Searcher {
         return result;
     }
 
-    private HashMap<Page,float[]> getRelevantion(List<Page> listPage) {
+    private HashMap<Page,float[]> getRelevantion(List<Page> listPage, Set<String> listLemma) {
         List<Integer> rankAbsList = new ArrayList<>();
         HashMap<Page, float[]> result = new HashMap<>();
         for(Page page: listPage){
             List<Index> indexList = indexReposytory.findAllByPageId(page);
-            int sumRankPage = (int)indexList.stream().mapToDouble(index -> index.getRank()).sum();
+            int sumRankPage = (int)indexList.stream().filter(index -> listLemma.contains(index.getLemmaId().getLemma()))
+                                                     .mapToDouble(index -> index.getRank()).sum();
             rankAbsList.add(sumRankPage);
         }
         Integer maxRank = rankAbsList.stream().max(Integer::compare).get();
@@ -135,12 +134,10 @@ public class Searcher {
         for(Lemma lemma:reduseList){
             List<Page> pagesNextLemma = listAllIndexPages.stream().filter(l->l.getLemmaId().getId()==lemma.getId()).map(l->l.getPageId()).collect(Collectors.toList());
             listAllIndexPages=listAllIndexPages.stream().filter(index -> pagesNextLemma.contains(index.getPageId())).collect(Collectors.toList());
-            //listAllIndexPages=listAllIndexPages.stream().filter(l->l.getLemmaId().equals(lemma)).collect(Collectors.toList());
             if(listAllIndexPages.size()==0){
                 return new ArrayList<Page>();
             }
         }
-
         List<Page> pages =  listAllIndexPages.stream().map(index -> index.getPageId()).collect(Collectors.toList());
         pages=removeDoblePage(pages);
         return  pages;
@@ -156,72 +153,6 @@ public class Searcher {
         return result;
     }
 
-   /* private List<Page> getPage(List<Lemma> reduseList, long siteId) {
-        if(reduseList.size()<1){
-            return new ArrayList<Page>();
-        }
-        // получить список индексов где есть лемма
-        // взять индекс следующей леммы и выбрать из списка индексов те где она есть
-        // повторять предыдущее действие пока список лемм не закончится или список индексов не будет равен 0
-        List<Index> listIndex;
-        listIndex=indexReposytory.findAllByLemmaId(reduseList.get(0));
-
-        for (int i=1; i<reduseList.size(); i++){
-            listIndex = findListLemma(listIndex,  reduseList.get(i));
-            if(listIndex.size()==0){
-                return new ArrayList<Page>();
-            }
-        }
-        List<Page> pageList = listIndex.stream().map(index -> index.getPageId()).collect(Collectors.toList());
-        if (siteId!=-1){
-            pageList = pageList.stream().filter(page -> page.getSite().getId()==siteId).collect(Collectors.toList());
-        }
-        return pageList;
-    }*/
-
-    private List<Index> findListLemma(List<Index> listIndex, Lemma lemma1) {
-         // по списку индексов найти все индексы лемм
-         // по полученным леммам найти список индексов
-         // из полученного списка выбрать содержащие индекс следующей леммы
-         List<Lemma> lemmaList = listIndex.stream().map(index -> index.getLemmaId()).collect(Collectors.toList());
-         List<Integer> listIdLemm = lemmaList.stream().map(lemma -> lemma.getId()).collect(Collectors.toList());
-         listIdLemm = removeDoble(listIdLemm);
-         indexReposytory.flush();
-         List<Index> indexList1 = getLems(listIdLemm);//  получаем из Index  все идексы для списка лемм
-         List<Integer> listPageId = indexList1.stream().map(index -> index.getPageId().getId()).collect(Collectors.toList());
-         List<Index> indexList = indexReposytory.findAllByPageIdIn(getPages(listPageId));
-         return indexList.stream().filter(index -> index.getLemmaId().getId()==lemma1.getId()).collect(Collectors.toList());
-    }
-
-    private List<Integer> removeDoble(List<Integer> listIdLemm) {
-        List<Integer> res = new ArrayList<>();
-        for(int i: listIdLemm){
-            if(!res.contains(i)){
-                res.add(i);
-            }
-        }
-        return res;
-    }
-
-    private List<Page> getPages(List<Integer> listPageId){
-        return pageReposytory.findAllByIdIn(listPageId);
-    }
-    private List<Index> getLems(List<Integer> listIdLemm) {
-        Session session = entityManager.unwrap(Session.class);
-        List<Index> index = new ArrayList<>();
-        Iterator iterator = listIdLemm.iterator();
-        while (iterator.hasNext()) {
-            String id = iterator.next().toString();
-            String lemma1 = "FROM Index WHERE lemma_id = :lem";
-            Query query = session.createQuery(lemma1);
-            query.setParameter("lem", id);
-            index.addAll(query.list());
-
-        }
-        return index;
-    }
-
-
     private List<Lemma> reduseList(List<Lemma> listLemma, int procentLemm) {
         if (listLemma.size()<2){
             return listLemma;
@@ -234,30 +165,33 @@ public class Searcher {
         int treshold = (int)(average + deviation*(Double.valueOf(procentLemm)/100d));
         List<Lemma> result = listLemma.stream().filter(lemma -> lemma.getFrequency()<=treshold).collect(Collectors.toList());
         return result;
-
     }
 
     public Set<String> getQeryLemma(String query){
+        query=query.replaceAll("ё","е");
         String[] arr = lematizator.getWordsFromText(query);
         Set<String> list= new HashSet<>();
         for(String s: arr){
             String st = lematizator.luceneMorph.getMorphInfo(s).toString();
+            List<String> normalForms = lematizator.luceneMorph.getNormalForms(s);
             String[] array = st.split("\\|", 2);
+            if(array[0].substring(1).length()<2){
+                continue;
+            }
             if(array[1].contains(" С ")||array[1].contains(" Г ")||array[1].contains(" П ")||
                     array[1].contains(" ПРИЧАСТИЕ ")||array[1].contains("КР_ПРИЧАСТИЕ")||
                     array[1].contains("ИНФИНИТИВ")||array[1].contains("КР_ПРИЛ")||array[1].contains("ПРЕДК")){
-               list.add(array[0].substring(1));
+               list.addAll(normalForms);
             }
         }
         list = removeDoble(list);
         return list;
     }
 
+
+
     public List<Lemma> getLemmaFromBase(Set<String> listQueryWord){
         List<Lemma> ll = lemmaReposytory.findAllByLemmaIn(listQueryWord);
-        /*if(!site.equals("-1")){
-            ll = ll.stream().filter(lemma -> lemma.getSite().getId()==siteId).collect(Collectors.toList());
-        }*/
         return ll;
     }
 

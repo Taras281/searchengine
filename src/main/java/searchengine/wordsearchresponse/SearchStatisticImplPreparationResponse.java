@@ -37,12 +37,19 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
     Logger logger;
 
     public SearchResponce getStatistics() {
-        if(query.equals("")||query.matches("^[a-zA-Z]+$")){
+        if(query.equals("")){
             SearchResponce responce = new SearchResponce();
             responce.setResult(false);
-            responce.setError("Поисковый запрос должен содержать только РУССКИЕ!!! буквы");
+            responce.setError("Задан пустой поисковый запрос");
             return responce;
         }
+        if(query.matches(".*[a-zA-Z]+.*")){
+            SearchResponce responce = new SearchResponce();
+            responce.setResult(false);
+            responce.setError("Поисковый запрос не должен содержать латинские буквы и символы");
+            return responce;
+        }
+
         search.setLimit(limit);
         search.setOffset(offset);
         search.setSite(site);
@@ -106,8 +113,9 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
     private String getSnippet(String content) {
         Document document = Jsoup.parse(content);
         String body = document.body().text();
+        body=body.replaceAll("Ё", "Е");
+        body=body.replaceAll("ё", "е");
         List<String> formsNormal = getNormalFormsQeryLeters();
-        //String[] arrWords = body.split(" ");
         ArrayList<String> arrWords = separated(body);
         ArrayList<List<String>> lemmsFromtext = getLemsFromText(arrWords);
         ArrayList<Integer> indexConcidenceLemmAndWord = getIndexConcidence(lemmsFromtext, formsNormal);
@@ -115,19 +123,12 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
         return result.toString();
     }
 
-    private String remoovePoonctuationMarks(String body) {
-        return body.replaceAll("[^\u0410-\u044F\u0451\u0401]", " ");
-    }
     private  ArrayList<String> separated(String input) {
         int start = 0;
         int stop = 0;
         ArrayList<String> result = new ArrayList();
         String reg = "[\u0410-\u044F\u0451\u0401]";
-        for (int i = 0; i < input.length(); i++) {
-            if (i == input.length() - 1) {
-                result.add(input.substring(input.lastIndexOf(result.get(result.size() - 1))));
-            }
-
+        for (int i = 0; i < input.length()-1; i++) {
             if (input.substring(i, i + 1).matches(reg)) {
                 continue;
             }
@@ -141,7 +142,6 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
                 result.add(input.substring(stop, stop + 1));
             }
             start = stop + 1;
-
         }
         return  result;
     }
@@ -163,15 +163,13 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
     }
 
     private String getLine(ArrayList<String> arrWords, int indexStart, int indexStop) {
-       //String[] res=Arrays.copyOfRange(arrWords, indexStart, indexStop);
        ArrayList<String> res= new ArrayList<>();
-       for(int i =indexStart; i<indexStop;i++){
+       for(int i = indexStart; i<indexStop;i++){
            res.add(arrWords.get(i));
        }
        StringBuilder sb = new StringBuilder();
        for(String s:res){
            sb.append(s);
-           //sb.append(" ");
        }
        return sb.toString();
     }
@@ -182,10 +180,10 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
             String word = arrWords.get(i);
             try{
                 word = word.toLowerCase();
-                //word = remoovePoonctuationMarks(word).trim();// ошибочно делает из туда-сюда "туда сюда"   а из Браво,Браво "браво браво"
-                //if(word.equals("")){
-                //    continue;
-                //}
+                if(word.length()<2){
+                    lemmsFromtext.add(Arrays.asList(word));
+                    continue;
+                }
                 List<String> normalForm = lematizator.luceneMorph.getNormalForms(word);
                 lemmsFromtext.add(normalForm);
             }
@@ -199,7 +197,6 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
 
     private ArrayList<Integer> getIndexConcidence(ArrayList<List<String>> lemmsFromtext, List<String> formsNormal) {
         ArrayList<Integer> indexConcidenceLemmInText = new ArrayList<>();
-        //seacherId(lemmsFromtext);
         for(int i=0; i< lemmsFromtext.size(); i++){
             if(lemmsFromtext.get(i)!=null){
                 for (int j=0; j<formsNormal.size(); j++){
@@ -213,15 +210,6 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
         return indexConcidenceLemmInText;
     }
 
-    void seacherId(ArrayList<List<String>> lemmsFromtext){
-        for(int i=0;i<lemmsFromtext.size();i++){
-             for(int j=0;j<lemmsFromtext.get(i).size();j++){
-                 if(lemmsFromtext.get(i).get(j).equals("сон")){
-                     int y =0;
-                 }
-             }
-        }
-    }
 
     private boolean arrayContains(List<String> lemms, String normalForms) {
         for(String lemma: lemms){

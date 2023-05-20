@@ -23,7 +23,6 @@ import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
 import searchengine.services.ExceptionNotUrl;
-
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.io.IOException;
@@ -33,8 +32,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class LemmatizatorServiсeImpl implements LemmatizatorService {
-    @PersistenceContext
-    private EntityManager entityManager;
+
 
     private Page page;
     @Autowired
@@ -74,12 +72,17 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
     public ResponseEntity<IndexingResponse> getResponse(String uri) {
         page = getPageFromUri(uri);
         if(!validUri(uri)){
-            indexingResponseNotOk.setError(myLabel.getThisPageOutSite());
-            indexingResponseNotOk.setError("check url");
-            return new ResponseEntity<>(indexingResponseNotOk, HttpStatus.NOT_FOUND);
+            indexingResponseNotOk.setResult(false);
+            indexingResponseNotOk.setError(myLabel.getCheckPage());
+            return new ResponseEntity<>(indexingResponseNotOk, HttpStatus.OK);
         }
-        if (uriContainsSiteList(uri))
-        {   //this.setPathParsingLink(uri);
+        if (page==null){
+            indexingResponseNotOk.setResult(false);
+            indexingResponseNotOk.setError(myLabel.getThisPageOutSite());
+            return new ResponseEntity<>(indexingResponseNotOk, HttpStatus.OK);
+        }
+
+        if (uriContainsSiteList(uri)) {
             this.setRewritePage(true);
             this.runing();
             indexingResponseOk.setResult(true);
@@ -98,8 +101,7 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
         return sitesList.getSites().stream().map(l-> uri.contains(l.getUrl())).anyMatch(b->b==true);
     }
 
-    public void runing() {
-        writeBaseLemsTableIndex(page);
+    public void runing() {writeBaseLemsTableIndex(page);
     }
 
     public void setPathParsingLink(Page page) {
@@ -107,13 +109,8 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
     }
 
     public void writeBaseLemsTableIndex(Page page) {
-            //Page page = pageReposytory.findById(pageIn.getId()).get();
-            //Site site = getSite(pathToBase);
             Site site = page.getSite();
-            //pageReposytory.flush();
-            //siteReposytory.flush();
             if(rewritePage){
-                //page = rewritePage(page, site, pathToBase);
                 pageReposytory.save(page);
             }
             if (page==null){
@@ -129,43 +126,31 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
         HashMap<String, Integer> nameLemmaNoYetWriteBase = getLemsNotYetWriteBase(lemsFromPage, lemmaFromBase);
         List<Lemma> lemmaNoYetWriteBase = getListLemmsForSaveBase(nameLemmaNoYetWriteBase, site);
         lemmaFromBase.addAll(lemmaNoYetWriteBase);
-        List<Index> indexFromBaseOptionTwoo = getIndex(lemmaFromBase, page);
-        //entityManager.flush();
+        List<Index> indexFromBaseOptionTwoo = getIndex(lemmaFromBase, page, lemsFromPage);
         lemmaReposytory.saveAll(lemmaFromBase);
         indexReposytory.saveAll(indexFromBaseOptionTwoo);
     }
 
-    private void delete(Page page) {
-        pageReposytory.delete(page);
-        pageReposytory.flush();
- }
-    private Page rewritePage(Page page, Site site, String pathToBase) {
-        if(page!=null){
-            delete(page);}
-        if(site==null){
-            return null;
-        }
-        String[] resPars=getCodeAndContent(pathToBase);
-        pageReposytory.save(getPage(pathToBase, site, resPars));
-        page = pageReposytory.findByPath(pathToBase);
-        return page;
-    }
 
-    private Index getIndex(Lemma lemma, Page page) {
+
+    private Index getIndex(Lemma lemma, Page page, int rank) {
         Index index = new Index();
-        index.setRank(lemma.getFrequency());
+        index.setRank(rank);
         index.setLemmaId(lemma);
         index.setPageId(page);
         return  index;
     }
-    private List<Index> getIndex(List<Lemma> lemmaFromBase, Page page) {
-
+    private List<Index> getIndex(List<Lemma> lemmaFromBase, Page page, HashMap<String, Integer> lemsFromPage) {
         List<Index> indexList = new ArrayList<>();
+        String content = Jsoup.parse(page.getContent()).text();
+        HashMap<String, Integer> lemms = lematizator.getLems(content);
         for(Lemma lemma: lemmaFromBase){
-            indexList.add(getIndex(lemma, page));
+            int rank = lemms.get(lemma.getLemma());
+            indexList.add(getIndex(lemma, page, rank));
         }
         return  indexList;
     }
+
 
     private List<Lemma> getLemsFromBase(HashMap<String, Integer> lemsFromPage) {
         Set<String> keys=lemsFromPage.keySet();
@@ -173,7 +158,14 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
         for(Lemma lemma:list){
            lemma.setFrequency(lemma.getFrequency()+1);
         }
+        list = deleteExcessLemma(list, keys);
         return  list;
+    }
+
+    private List<Lemma> deleteExcessLemma(List<Lemma> list, Set<String> keys) {
+        List<Lemma> result = new ArrayList<>();
+        result = list.stream().filter(lemma -> keys.contains(lemma.getLemma())).collect(Collectors.toList());
+        return result;
     }
 
     private List<Lemma> getListLemmsForSaveBase(HashMap<String, Integer> nameLemmaNoYetWriteBase, Site site) {
@@ -205,40 +197,6 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
 
     }
 
-    private Page getPage(String pathToBase, Site site, String[] resPars) {
-        Page page = new Page();
-        page.setCode(Integer.valueOf(resPars[0]));
-        page.setPath(pathToBase);
-        page.setContent(resPars[1]);
-        page.setSite(site);
-        return  page;
-    }
-
-    private String[] getCodeAndContent(String pathToBase) {
-        String[] res = new String[2];
-        Document document = null;
-        try {
-            document = Jsoup.connect(pathToBase)
-                    .userAgent(userAgent.getUserAgent())
-                    .referrer(userAgent.getReferrer())
-                    .get();
-            res[0] = String.valueOf(document.connection().response().statusCode());
-            res[1] = document.head().toString()+document.body().toString().toString();
-
-        } catch (IOException e) {
-            logger.error("Error pars " + pathToBase + "  " + e);
-        }
-        return res;
-    }
-
-    private Site getSite(String pathToBase) {
-        for(searchengine.config.Site site: siteList.getSites()){
-            if(pathToBase.contains(site.getUrl())){
-                return siteReposytory.findByUrl(site.getUrl());
-            }
-        }
-        return null;
-    }
 
     private Page getPageFromUri(String uri) {
         ArrayList<String> listUri = (ArrayList<String>) sitesList.getSites().stream().map(s->s.getUrl()).collect(Collectors.toList());
@@ -266,6 +224,7 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
         return p;
 
     }
+
 
     private String remoovePrefix(searchengine.model.Site site, String url) throws ExceptionNotUrl {
         if (!url.contains(site.getUrl())) {

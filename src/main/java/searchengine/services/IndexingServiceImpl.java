@@ -52,7 +52,9 @@ public class IndexingServiceImpl implements IndexingService {
     }
 
     private Label myLabel;
-    public IndexingServiceImpl(SiteRepository siteRepository, PageRepository pageReposytory, UserAgent userAgent, SitesList sitesList, Label label, Logger logger, SubLemmatizatorController subLemmatizatorController) {
+    public IndexingServiceImpl(SiteRepository siteRepository, PageRepository pageReposytory,
+                               UserAgent userAgent, SitesList sitesList, Label label, Logger logger,
+                               SubLemmatizatorController subLemmatizatorController) {
         this.siteRepository = siteRepository;
         this.pageReposytory = pageReposytory;
         this.sitesList = sitesList;
@@ -68,7 +70,7 @@ public class IndexingServiceImpl implements IndexingService {
             startIndexing();
             return new ResponseEntity<>(createResponse(true, !indexingState), HttpStatus.OK);
         }
-        return  new ResponseEntity<>(createResponse(true, indexingState), HttpStatus.BAD_REQUEST);
+        return  new ResponseEntity<>(createResponse(true, indexingState), HttpStatus.OK);
     }
 
     private IndexingResponse createResponse(boolean start, boolean indexingStarted){
@@ -77,13 +79,13 @@ public class IndexingServiceImpl implements IndexingService {
             return createIndexingResponseOk();
         }
         else if (start&&indexingStarted){
-            return createResponseNotOk();
+            return createResponseNotOk(myLabel.getIndexingStarted());
         }
         else if(!start&&indexingStarted){
             return createIndexingResponseOk();
         }
         else if (!start&&!indexingStarted){
-            indexingResponse = createResponseNotOk();
+            indexingResponse = createResponseNotOk(myLabel.getIndexingNotStarted());
         }
         return indexingResponse;
     }
@@ -94,23 +96,36 @@ public class IndexingServiceImpl implements IndexingService {
         return indexingResponseOk;
     }
 
-    private IndexingResponse createResponseNotOk() {
+    private IndexingResponse createResponseNotOk(String error) {
         IndexingResponseNotOk indexingResponseNotOk = new IndexingResponseNotOk();
         indexingResponseNotOk.setResult(false);
-        indexingResponseNotOk.setError(myLabel.getIndexingStarted());
+        indexingResponseNotOk.setError(error);
         return indexingResponseNotOk;
 
     }
 
     public ResponseEntity<IndexingResponse> getStopIndexing() throws InterruptedException {
         if(indexingState){
-            stopIndexing();
+            try{
+                stopIndexing();
+            }
+            catch (ConcurrentModificationException cme){
+                return new ResponseEntity<>(createResponseErrorBase(), HttpStatus.OK);
+            }
+
             indexingState = false;
             return new ResponseEntity<>(createResponse(false, !indexingState), HttpStatus.OK);
         }
         else {
-            return new ResponseEntity<>(createResponse(false, indexingState), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(createResponse(false, indexingState), HttpStatus.OK);
         }
+    }
+
+    private IndexingResponseNotOk createResponseErrorBase() {
+        IndexingResponseNotOk indexingResponseNotOk = new IndexingResponseNotOk();
+        indexingResponseNotOk.setResult(false);
+        indexingResponseNotOk.setError("Ошибка остановки Индексации, но в целом все хорошо, нажмите обновить страницу");
+        return indexingResponseNotOk;
     }
 
     private void startIndexing() {
@@ -122,7 +137,7 @@ public class IndexingServiceImpl implements IndexingService {
             searchengine.model.Site siteInBase = returnModelSite(StatusEnum.INDEXING, getDataTime(), "", url, site.getName());
             searchengine.model.Site siteFromBase=null;
             Set<String> errorLinks = new HashSet<>();
-            Set<String> notEyetParsingLinkWhereStopedUser = new HashSet<>();
+            CopyOnWriteArraySet<String> notEyetParsingLinkWhereStopedUser = new  CopyOnWriteArraySet<>();
             synchronized (siteRepository) {
                 siteFromBase = siteRepository.save(siteInBase);
             }
@@ -133,29 +148,23 @@ public class IndexingServiceImpl implements IndexingService {
             AtomicInteger counterStopedPfj= new AtomicInteger();
             for (ParserForkJoin pfj: listTask){
             new Thread(()->{
-                logger.error("strt pfj " + pfj.link);
-                long start = System.currentTimeMillis();
                 forkJoinPool.invoke(pfj);
                 counterStopedPfj.incrementAndGet();
                 pfj.getSite().setStatus(StatusEnum.INDEXED);
                 siteRepository.save(pfj.getSite());
                 if(counterStopedPfj.get()==listTask.size()){
-                    try {
-                        getStopIndexing();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
+                        indexingState=false;
                 }
-                logger.error("pfj stop " + pfj.link + " "+pfj.marker);
-                logger.error("forkjoin " + forkJoinPool.toString());
-                System.out.println("TIME PARSING " +(System.currentTimeMillis()-start)/1000 + " c");
                 }).start();
         }
     }
-    private void stopIndexing() throws InterruptedException {
+
+
+    private void stopIndexing() throws InterruptedException, ConcurrentModificationException {
         for(ParserForkJoin task: listTask){
             task.stopIndexing();
         }
+        subLemmatizatorController.shutdown();
         forkJoinPool.shutdownNow();
     }
 
@@ -179,15 +188,14 @@ public class IndexingServiceImpl implements IndexingService {
     }
 
         public class ParserForkJoin extends RecursiveTask<Set<String>>{
-            private  Set<String> notEyetParsingLinkWhereStopedUser;
+            private   CopyOnWriteArraySet<String> notEyetParsingLinkWhereStopedUser;
             private String link;
             private static Boolean blockWorkForkJoin;
             private String marker;
             private searchengine.model.Site site;
             private Set<String> errorLinks;
-            private static long counter=0;
 
-            public ParserForkJoin(String link, String marker, searchengine.model.Site site, Set<String> errorLinks, Set<String> notEyetParsingLinkWhereStopedUser) {
+            public ParserForkJoin(String link, String marker, searchengine.model.Site site, Set<String> errorLinks,  CopyOnWriteArraySet<String> notEyetParsingLinkWhereStopedUser) {
                 this.link = link;
                 this.marker=marker;
                 this.site=site;
@@ -211,97 +219,58 @@ public class IndexingServiceImpl implements IndexingService {
                             ParserForkJoin p = new ParserForkJoin(l, marker, site, errorLinks, notEyetParsingLinkWhereStopedUser);
                             parserTask.add(p);
                             p.fork();
-                            ++counter;
                         }
                         for(ParserForkJoin p:parserTask){
                             resultSet.addAll(p.join());
-                            --counter;
-                            System.out.println("p+  " + p.link);
                         }
                     }
-                System.out.println("counter  " + counter);
-                System.out.println(Thread.getAllStackTraces());
                 return resultSet;
             }
 
             private synchronized Set<String> pars(String url){
-                System.out.println("url "+ url);
-                System.out.println("1");
                 Set<String> setUrlinPage = new HashSet<>();
-                System.out.println("2");
-                /*if ((!validUrl(url))||(!contaning(url, marker))||errorLinks.contains(url)) {
-                    notEyetParsingLinkWhereStopedUser.remove(url);
-                    return setUrlinPage;
-                }*/
                 Document document = getDocument(url);
-                System.out.println("3");
                 if (document == (null)) {
-                    System.out.println("4");
                     notEyetParsingLinkWhereStopedUser.remove(url);
-                    System.out.println("5");
                     errorLinks.add(url);
-                    System.out.println("6");
                     return setUrlinPage;
                 }
-                System.out.println("7");
                 int statusResponse = document.connection().response().statusCode();
-               // synchronized (pageReposytory){
-                System.out.println("8");
                     String urlForPath="";
                     try {
-                        System.out.println("9");
                         urlForPath = remoovePrefix(site,url);
                     } catch (ExceptionNotUrl e) {
-                        System.out.println("10");
                         return setUrlinPage;
                     }
-                System.out.println("11");
                     Page page = null;
-                System.out.println("12");
                     page = new Page(1, site, urlForPath,
                             statusResponse, document.head().toString()+document.body().toString());
-                System.out.println("13");
+
                    if (dontContained((page)))
                     {
-                        System.out.println("14");
                         try {
-                            synchronized (pageReposytory){
+                               synchronized (pageReposytory){
                                 page = pageReposytory.save(page);
                             }
                         }
                         catch (Exception sqe){
                             logger.error("sqe "+ sqe);
                         }
-
-                        System.out.println("15");
                         setTime(site);
                         startLematization(page);
                     }
                     else{
-                       System.out.println("16");
                         notEyetParsingLinkWhereStopedUser.remove(url);
-                       System.out.println("17");
                         return setUrlinPage;
                     }
-                System.out.println("18");
                     setUrlinPage = getSetUrlInPage(document);
-                    //System.out.println("16");
-                    //setUrlinPage.removeAll(errorLinks);
-                System.out.println("19");
                     setUrlinPage.add(url);
-                System.out.println("20");
                     setUrlinPage = reduseList(setUrlinPage, site);
-                //}
-                System.out.println("21");
+
                 if(!blockWorkForkJoin){
-                    System.out.println("22");
                     notEyetParsingLinkWhereStopedUser.addAll(setUrlinPage);
-                    System.out.println("23");
                     notEyetParsingLinkWhereStopedUser.remove(url);
                 }
-                System.out.println("24");
-                System.out.println(url);
-                System.out.println("setUrlinPage " + setUrlinPage.size() + " " + setUrlinPage.toString());
                 return setUrlinPage;
             }
 
@@ -335,15 +304,6 @@ public class IndexingServiceImpl implements IndexingService {
                 for (String link: urlSetWithoutPrefix){
                     result.add(prefix+link);
                 }
-                //Set<String> result = (Set<String>) urlSetWithoutPrefix.stream().map(link->prefix+link).collect(Collectors.toList());
-
-                /*
-                for(String s: urlSet){
-                    String url = prefix+s;
-                    if ((validUrl(url))||(contaning(url, marker))||!errorLinks.contains(url)) {
-                        result.add(url);
-                    }
-                }*/
                 return result;
             }
 
@@ -427,7 +387,7 @@ public class IndexingServiceImpl implements IndexingService {
             }
 
 
-            private void stopIndexing() throws InterruptedException {
+            private void stopIndexing() throws InterruptedException, ConcurrentModificationException {
                 blockWorkForkJoin=true;
                 synchronized (pageReposytory){
                     synchronized (notEyetParsingLinkWhereStopedUser){
@@ -441,7 +401,6 @@ public class IndexingServiceImpl implements IndexingService {
                             if(dontContained(p)){
                                     pageReposytory.save(p);
                                     sendErrorBase("Stopped indexing user");
-
                             }
                         }
                     }
@@ -478,7 +437,6 @@ public class IndexingServiceImpl implements IndexingService {
                 {
                     logger.error("dontContained " + ecp);
                 }
-
                     return p==null?true:false;
             }
 

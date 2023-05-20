@@ -27,12 +27,14 @@ public class ApiController {
     }
     @GetMapping("/startIndexing")
     public ResponseEntity<IndexingResponse> indexing() {
-     return indexingServise.getStartResponse();
+
+        return indexingServise.getStartResponse();
     }
 
     @GetMapping("/stopIndexing")
     public ResponseEntity<IndexingResponse> stopIndexing() throws InterruptedException {
-        return indexingServise.getStopIndexing();
+        ResponseEntity<IndexingResponse> resp =indexingServise.getStopIndexing();
+        return resp;
     }
     @GetMapping("/indexPage")
     public ResponseEntity<IndexingResponse> indexingPage(@RequestParam("url") String uri){

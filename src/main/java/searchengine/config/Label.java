@@ -14,4 +14,5 @@ public class Label {
     private String indexingNotStarted;
     private String indexingStopedUser;
     private String thisPageOutSite;
+    private String checkPage;
 }

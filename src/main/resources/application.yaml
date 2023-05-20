@@ -23,7 +23,11 @@ spring:
    hibernate:
    dialect: org.hibernate.dialect.MySQL5Dialect
    ddl-auto: create-update
-   show-sql: true
+   #show-sql: true
+   #jdbc:
+   #batch_size: 20
+   #order_insert: true
+   #order_updates: true
 
 
   generate-ddl: true
@@ -67,6 +71,7 @@ my-labels:
    indexingNotStarted: Индексация еще не запущена
    indexingStopedUser: Индексация остановлена пользователем
    thisPageOutSite: Данная страница находится за пределами сайтов, указанных в конфигурационном файле
+   checkPage: Проверте правильность написания адреса
 
 
 

@@ -1,11 +1,16 @@
 package searchengine.dto.responce;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 @Data
-@Service
+@Component
+@JsonSerialize
 public class IndexingResponseNotOk implements IndexingResponse {
+    @JsonProperty("result")
     private boolean result;
+    @JsonProperty("error")
     private String error;
 }

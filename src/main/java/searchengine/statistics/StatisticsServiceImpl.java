@@ -28,6 +28,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     @Autowired
     LemmaRepository lemmaReposytory;
+    private String myErrorStatus = "-111";
     private final SitesList sites;
 
     @Override
@@ -51,18 +52,18 @@ public class StatisticsServiceImpl implements StatisticsService {
             DetailedStatisticsItem item = new DetailedStatisticsItem();
             item.setName(site.getName());
             item.setUrl(site.getUrl());
-            searchengine.model.Site siteModel = siteRepository.findByUrl(site.getUrl());
+            List<searchengine.model.Site> siteModelList = siteRepository.findByName(sitesList.get(i).getName());
+            if(siteModelList.size()>1){
+                return getErrorBaseTableSite();
+            }
+            searchengine.model.Site siteModel = siteModelList.get(0);
             if(siteModel==null){continue;}
             ArrayList<Page> pagesSite = pageReposytory.findAllBySite(siteModel);
             int pages = pagesSite.size();
             if(pages>0){
                 ArrayList<Lemma> lemma = lemmaReposytory.findAllBySite(siteModel);
                 int lemmas = lemma.size();
-                item.setPages(pages);
-                item.setLemmas(lemmas);
-                item.setStatus(siteModel.getStatus().name());
-                item.setError(siteModel.getLastError());
-                item.setStatusTime(siteModel.getStatusTime());
+                setParametrsItem(item, pages, lemmas, siteModel);
                 total.setPages(total.getPages() + pages);
                 total.setLemmas(total.getLemmas() + lemmas);
                 detailed.add(item);
@@ -71,6 +72,27 @@ public class StatisticsServiceImpl implements StatisticsService {
         statisticsData.setTotal(total);
         statisticsData.setDetailed(detailed);
         return statisticsData;
+    }
+
+    private void setParametrsItem(DetailedStatisticsItem item, int pages, int lemmas, searchengine.model.Site  siteModel) {
+        item.setPages(pages);
+        item.setLemmas(lemmas);
+        item.setStatus(siteModel.getStatus().name());
+        item.setError(siteModel.getLastError());
+        item.setStatusTime(siteModel.getStatusTime());
+    }
+
+    private StatisticsData getErrorBaseTableSite() {
+        DetailedStatisticsItem detailedStatisticsItem = new DetailedStatisticsItem();
+        detailedStatisticsItem.setError("База вернула не однозначный ответ(список сайтов) позовите системного администратора");
+        detailedStatisticsItem.setStatus(myErrorStatus);
+        List<DetailedStatisticsItem> error  = new ArrayList<>();
+        error.add(detailedStatisticsItem);
+        TotalStatistics totalStatistics = new TotalStatistics();
+        StatisticsData statisticsData1 = new StatisticsData();
+        statisticsData1.setDetailed(error);
+        statisticsData1.setTotal(totalStatistics);
+        return statisticsData1;
     }
 
 }

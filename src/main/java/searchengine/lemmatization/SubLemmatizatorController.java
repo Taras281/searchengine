@@ -8,18 +8,20 @@ import searchengine.model.Page;
 import java.util.ArrayDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 @Component
 public class SubLemmatizatorController {
     private ArrayDeque<Page> dequeLinksForLematizator;
     private ExecutorService es;
     private ApplicationContext context;
     private LemmatizatorServiсeImpl lematizatorServise;
+    int countProcessor;
 
     SubLemmatizatorController(LemmatizatorServiсeImpl lematizatorServise){
         dequeLinksForLematizator = new ArrayDeque<>();
         context = ApplicationContextHolder.getApplicationContext();
         this.lematizatorServise = lematizatorServise;
-        int countProcessor = Runtime.getRuntime().availableProcessors();
         es = Executors.newFixedThreadPool(1);
     }
 
@@ -31,6 +33,9 @@ public class SubLemmatizatorController {
     }
 
     private void startLematization() {
+        if (es.isTerminated()){
+            es = Executors.newFixedThreadPool(1);
+        }
         es.execute(new Runnable() {
             @Override
             public void run() {
@@ -41,5 +46,24 @@ public class SubLemmatizatorController {
                 }
             }
         });
+    }
+
+    public void shutdown() {
+        dequeLinksForLematizator.clear();
+        es.shutdown(); // Disable new tasks from being submitted
+        try {
+            // Wait a while for existing tasks to terminate
+            if (!es.awaitTermination(5, TimeUnit.SECONDS)) {
+                es.shutdownNow(); // Cancel currently executing tasks
+                // Wait a while for tasks to respond to being cancelled
+                if (!es.awaitTermination(10, TimeUnit.SECONDS))
+                    System.err.println("Pool did not terminate");
+            }
+        } catch (InterruptedException ie) {
+            // (Re-)Cancel if current thread also interrupted
+            es.shutdownNow();
+            // Preserve interrupt status
+            Thread.currentThread().interrupt();
+        }
     }
 }
