@@ -126,7 +126,7 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
         HashMap<String, Integer> nameLemmaNoYetWriteBase = getLemsNotYetWriteBase(lemsFromPage, lemmaFromBase);
         List<Lemma> lemmaNoYetWriteBase = getListLemmsForSaveBase(nameLemmaNoYetWriteBase, site);
         lemmaFromBase.addAll(lemmaNoYetWriteBase);
-        List<Index> indexFromBaseOptionTwoo = getIndex(lemmaFromBase, page, lemsFromPage);
+        List<Index> indexFromBaseOptionTwoo = getIndex(lemmaFromBase, lemsFromPage);
         lemmaReposytory.saveAll(lemmaFromBase);
         indexReposytory.saveAll(indexFromBaseOptionTwoo);
     }
@@ -140,12 +140,10 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
         index.setPageId(page);
         return  index;
     }
-    private List<Index> getIndex(List<Lemma> lemmaFromBase, Page page, HashMap<String, Integer> lemsFromPage) {
+    private List<Index> getIndex(List<Lemma> lemmaFromBase, HashMap<String, Integer> lemsFromPage) {
         List<Index> indexList = new ArrayList<>();
-        String content = Jsoup.parse(page.getContent()).text();
-        HashMap<String, Integer> lemms = lematizator.getLems(content);
         for(Lemma lemma: lemmaFromBase){
-            int rank = lemms.get(lemma.getLemma());
+            int rank = lemsFromPage.get(lemma.getLemma());
             indexList.add(getIndex(lemma, page, rank));
         }
         return  indexList;
