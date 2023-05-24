@@ -68,7 +68,6 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
             responce.setError("Слова - \"" +resultSearch.get(0).getKey().getPath() + "\" не найдены в базе, уберите их пожалуйста");
             return responce;
         }
-
         SearchResponce responce = getResponse(resultSearch);
         return responce;
     }

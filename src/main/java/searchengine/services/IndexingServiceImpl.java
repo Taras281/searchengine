@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 @Service
 
 public class IndexingServiceImpl implements IndexingService {
+    // new branch after pattern
 
     private SiteRepository siteRepository;
 

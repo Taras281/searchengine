@@ -154,6 +154,9 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
         Set<String> keys=lemsFromPage.keySet();
         List<Lemma> list= lemmaReposytory.findAllByLemmaIn(keys);
         for(Lemma lemma:list){
+            if(lemma.getLemma().equals("купить")){
+                int y =0;
+            }
            lemma.setFrequency(lemma.getFrequency()+1);
         }
         list = deleteExcessLemma(list, keys);

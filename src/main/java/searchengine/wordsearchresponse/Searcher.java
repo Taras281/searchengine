@@ -98,6 +98,11 @@ public class Searcher {
     }
 
     private HashMap<Page,float[]> getRelevantion(List<Page> listPage, Set<String> listLemma) {
+       /*для каждой страници получаем список индексов
+         отфильтровываем индексы для лемм из запроса
+         сумируем rank для лемм из запроса
+         в результате получаем МАПУ содержащую страницу и соответствующую ей абсолютный и относительный rank*/
+
         List<Integer> rankAbsList = new ArrayList<>();
         HashMap<Page, float[]> result = new HashMap<>();
         for(Page page: listPage){
@@ -112,13 +117,15 @@ public class Searcher {
             result.put(listPage.get(i), new float[]{rankAbsList.get(i), rankRelativ});
         }
     return  result;
-    }
+    }/**/
 
     private List<Page> getPage(List<Lemma> reduseList, long siteId) {
         /*
-        по первой лемме получить индексы, по индексам получить список страниц
-        для этого списка получить списки лемм их объединить отфильтровав по сайту
-        дальше фильтровать для каждой леммы
+        по первой лемме получить индексы,
+        по индексам получить список страниц
+        0 для этого списка получить список индексов для всех страницах
+          1 из полученного списка по следующей лемме (из списка лемм сформированного из запроса) получить страници
+          2 из списка индексов 0 отфильтровать индексы соответствующие этим страницам
          */
         List<Index> indexFerstLemma = indexReposytory.findAllByLemmaId(reduseList.get(0));
         List<Page> listPageFerstLemma=new ArrayList<>();
@@ -132,7 +139,7 @@ public class Searcher {
         List<Index> listAllIndexPages = indexReposytory.findAllByPageIdIn(listPageFerstLemma);
         reduseList.remove(0);
         for(Lemma lemma:reduseList){
-            List<Page> pagesNextLemma = listAllIndexPages.stream().filter(l->l.getLemmaId().getId()==lemma.getId()).map(l->l.getPageId()).collect(Collectors.toList());
+            List<Page> pagesNextLemma = listAllIndexPages.stream().filter(index->index.getLemmaId().getId()==lemma.getId()).map(l->l.getPageId()).collect(Collectors.toList());
             listAllIndexPages=listAllIndexPages.stream().filter(index -> pagesNextLemma.contains(index.getPageId())).collect(Collectors.toList());
             if(listAllIndexPages.size()==0){
                 return new ArrayList<Page>();
