@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.Label;
@@ -23,15 +24,13 @@ import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
 import searchengine.services.ExceptionNotUrl;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service
+@Component
 @Transactional
-public class LemmatizatorServiсeImpl implements LemmatizatorService {
+public class LemmatizatorServiсeImpl {
 
     private Page page;
     @Autowired
@@ -45,9 +44,8 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
 
     @Autowired
     SiteRepository siteReposytory;
-
     @Autowired
-    Lemmatizator lematizator;
+    LemmatizatorReturnCountWord lematizator;
     @Autowired
     SitesList siteList;
     @Autowired
@@ -64,6 +62,17 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
     private SitesList sitesList;;
 
     private boolean rewritePage;
+
+    private ArrayDeque<Page> dequeLinksForLematizator=new ArrayDeque<>();
+
+    public void newStartLematization(Page page){
+        dequeLinksForLematizator.addLast(page);
+        while (!dequeLinksForLematizator.isEmpty()){
+            this.setPathParsingLink(dequeLinksForLematizator.removeFirst());
+            this.setRewritePage(false);
+            this.runing();
+        }
+    }
 
     public void setRewritePage(boolean rewritePage) {
         this.rewritePage = rewritePage;
@@ -110,8 +119,7 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
     public void writeBaseLemsTableIndex(Page page) {
             Site site = page.getSite();
             if(rewritePage){
-                    pageReposytory.save(page);
-
+             pageReposytory.save(page);
             }
             if (page==null){
                 return;
@@ -147,7 +155,6 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
         }
         return  indexList;
     }
-
 
     private synchronized List<Lemma> getLemsFromBase(HashMap<String, Integer> lemsFromPage) {
         Set<String> keys=lemsFromPage.keySet();

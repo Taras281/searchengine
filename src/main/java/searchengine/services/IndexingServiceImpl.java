@@ -2,7 +2,6 @@ package searchengine.services;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,14 +14,14 @@ import searchengine.config.UserAgent;
 import searchengine.dto.responce.IndexingResponse;
 import searchengine.dto.responce.IndexingResponseNotOk;
 import searchengine.dto.responce.IndexingResponseOk;
+import searchengine.lemmatization.LemmatizatorServiсeImpl;
 import searchengine.model.Page;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
-import searchengine.lemmatization.SubLemmatizatorController;
+
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -41,25 +40,21 @@ public class IndexingServiceImpl implements IndexingService {
     private SitesList sitesList;
 
     private Logger logger;
-
-    private SubLemmatizatorController subLemmatizatorController;
-
     private ForkJoinPool forkJoinPool;
     private ParserForkJoin parserForkJoin;
     private ArrayList<ParserForkJoin> listTask;
-
-
+    private LemmatizatorServiсeImpl lemmatizatorServiсe;
     private Label myLabel;
     public IndexingServiceImpl(SiteRepository siteRepository, PageRepository pageReposytory,
                                UserAgent userAgent, SitesList sitesList, Label label, Logger logger,
-                               SubLemmatizatorController subLemmatizatorController) {
+                               LemmatizatorServiсeImpl lemmatizatorServiсe) {
         this.siteRepository = siteRepository;
         this.pageReposytory = pageReposytory;
         this.sitesList = sitesList;
         this.myLabel = label;
         this.userAgent = userAgent;
         this.logger = logger;
-        this.subLemmatizatorController = subLemmatizatorController;
+        this.lemmatizatorServiсe = lemmatizatorServiсe;
     }
 
     public ResponseEntity<IndexingResponse> getStartResponse(){
@@ -84,12 +79,39 @@ public class IndexingServiceImpl implements IndexingService {
             return new ResponseEntity<>(createResponseNotOk(myLabel.getIndexingNotStarted()), HttpStatus.OK);
         }
     }
+
+    public ResponseEntity<IndexingResponse> getResponseIndexing(String uri) {
+        Page page = getPageFromUri(uri);
+        IndexingResponseNotOk indexingResponseNotOk = new IndexingResponseNotOk();
+        IndexingResponseOk indexingResponseOk = new IndexingResponseOk();
+        if(!validUri(uri)){
+
+            indexingResponseNotOk.setResult(false);
+            indexingResponseNotOk.setError(myLabel.getCheckPage());
+            return new ResponseEntity<>(indexingResponseNotOk, HttpStatus.OK);
+        }
+        if (page==null){
+            indexingResponseNotOk.setResult(false);
+            indexingResponseNotOk.setError(myLabel.getThisPageOutSite());
+            return new ResponseEntity<>(indexingResponseNotOk, HttpStatus.OK);
+        }
+
+        if (uriContainsSiteList(uri)) {
+            lemmatizatorServiсe.setRewritePage(true);
+            lemmatizatorServiсe.setPathParsingLink(page);
+            lemmatizatorServiсe.runing();
+            indexingResponseOk.setResult(true);
+            return new ResponseEntity<>(indexingResponseOk, HttpStatus.OK);}
+        else{
+            indexingResponseNotOk.setError(myLabel.getThisPageOutSite());
+            return new ResponseEntity<>(indexingResponseNotOk, HttpStatus.BAD_REQUEST);
+        }
+    }
     private IndexingResponse createIndexingResponseOk() {
         IndexingResponseOk indexingResponseOk =  new IndexingResponseOk();
         indexingResponseOk.setResult(true);
         return indexingResponseOk;
     }
-
     private IndexingResponse createResponseNotOk(String error) {
         IndexingResponseNotOk indexingResponseNotOk = new IndexingResponseNotOk();
         indexingResponseNotOk.setResult(false);
@@ -102,6 +124,7 @@ public class IndexingServiceImpl implements IndexingService {
         indexingResponseNotOk.setError("Ошибка остановки Индексации, но в целом все хорошо, нажмите обновить страницу");
         return indexingResponseNotOk;
     }
+
 
     private void startIndexing() {
         forkJoinPool =  new ForkJoinPool();
@@ -116,7 +139,7 @@ public class IndexingServiceImpl implements IndexingService {
             synchronized (siteRepository) {
                 siteFromBase = siteRepository.save(siteInBase);
             }
-            parserForkJoin =  new ParserForkJoin(pageReposytory, siteRepository, logger, subLemmatizatorController, myLabel, userAgent,
+            parserForkJoin =  new ParserForkJoin(pageReposytory, siteRepository, logger, lemmatizatorServiсe, myLabel, userAgent,
                                                  notEyetParsingLinkWhereStopedUser, url, url, siteFromBase, errorLinks);
             ParserForkJoin.blockWorkForkJoin = false;
             listTask.add(parserForkJoin);
@@ -136,7 +159,6 @@ public class IndexingServiceImpl implements IndexingService {
         for(ParserForkJoin task: listTask){
             task.stopIndexing();
         }
-        subLemmatizatorController.shutdown();
         forkJoinPool.shutdownNow();
     }
 
@@ -158,5 +180,59 @@ public class IndexingServiceImpl implements IndexingService {
         String result = formatter.format(cal.getTime());
         return result;
     }
+    private boolean validUri(String uri) {
+        return  uri.matches("^(https?)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
     }
+    private Page getPageFromUri(String uri) {
+        ArrayList<String> listUri = (ArrayList<String>) sitesList.getSites().stream().map(s->s.getUrl()).collect(Collectors.toList());
+        Page p=null;
+        for(String site: listUri){
+            if(uri.contains(site)){
+                searchengine.model.Site s = siteRepository.findByUrl(site);
+                String urlForPath = null;
+                try {
+                    urlForPath = remoovePrefix(s, uri);
+                } catch (ExceptionNotUrl e) {
+                    logger.error("LematizatorServiseImpl " + e);
+                }
+                p = pageReposytory.findByPathAndSite(urlForPath, s);
+                if(p!=null){
+                    pageReposytory.delete(p);
+                }
+                Document document = getDocument(uri);
+                int statusResponse = document.connection().response().statusCode();
+                p =  new Page(1, s, urlForPath,
+                        statusResponse, document.head().toString()+document.body().toString());
+                p=pageReposytory.save(p);
+
+            }
+        }
+        return p;
+    }
+    private boolean uriContainsSiteList(String uri) {
+        return sitesList.getSites().stream().map(l-> uri.contains(l.getUrl())).anyMatch(b->b==true);
+    }
+    private String remoovePrefix(searchengine.model.Site site, String url) throws ExceptionNotUrl {
+        if (!url.contains(site.getUrl())) {
+            throw new ExceptionNotUrl();
+        }
+        String result=url.replaceAll(site.getUrl(),"");
+        return result;
+    }
+    private Document getDocument(String url) {
+        Document document = null;
+        try {
+            document = Jsoup.connect(url)
+                    .userAgent(userAgent.getUserAgent())
+                    .referrer(userAgent.getReferrer())
+                    .get();
+        } catch (IOException e) {
+            synchronized (url){
+                String error = "Error pars url " + url + "  " +e.toString();
+            }
+        }
+        return document;
+    }
+
+}
 

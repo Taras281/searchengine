@@ -15,7 +15,7 @@ import searchengine.dto.search.SearchResponce;
 import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repository.SiteRepository;
-import searchengine.lemmatization.Lemmatizator;
+import searchengine.lemmatization.LemmatizatorReturnCountWord;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,7 +29,7 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
     @Autowired
     private Searcher search;
     @Autowired
-    private Lemmatizator lematizator;
+    private LemmatizatorReturnCountWord lematizator;
     @Autowired
     SiteRepository siteRepository;
 

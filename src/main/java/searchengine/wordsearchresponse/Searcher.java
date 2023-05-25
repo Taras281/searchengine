@@ -10,7 +10,7 @@ import searchengine.repository.IndexRepository;
 import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
-import searchengine.lemmatization.Lemmatizator;
+import searchengine.lemmatization.LemmatizatorReturnCountWord;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.*;
@@ -25,7 +25,7 @@ public class Searcher {
     private int  limit;
     private long siteId;
     @Autowired
-    private Lemmatizator lematizator;
+    private LemmatizatorReturnCountWord lematizator;
     @Autowired
     private PageRepository pageReposytory;
     @Autowired
