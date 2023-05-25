@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 @Transactional
 public class LemmatizatorServiсeImpl implements LemmatizatorService {
 
-
     private Page page;
     @Autowired
     IndexRepository indexReposytory;
@@ -111,7 +110,8 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
     public void writeBaseLemsTableIndex(Page page) {
             Site site = page.getSite();
             if(rewritePage){
-                pageReposytory.save(page);
+                    pageReposytory.save(page);
+
             }
             if (page==null){
                 return;
@@ -129,9 +129,8 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
         List<Index> indexFromBaseOptionTwoo = getIndex(lemmaFromBase, lemsFromPage);
         lemmaReposytory.saveAll(lemmaFromBase);
         indexReposytory.saveAll(indexFromBaseOptionTwoo);
+
     }
-
-
 
     private Index getIndex(Lemma lemma, Page page, int rank) {
         Index index = new Index();
@@ -150,14 +149,11 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
     }
 
 
-    private List<Lemma> getLemsFromBase(HashMap<String, Integer> lemsFromPage) {
+    private synchronized List<Lemma> getLemsFromBase(HashMap<String, Integer> lemsFromPage) {
         Set<String> keys=lemsFromPage.keySet();
         List<Lemma> list= lemmaReposytory.findAllByLemmaIn(keys);
         for(Lemma lemma:list){
-            if(lemma.getLemma().equals("купить")){
-                int y =0;
-            }
-           lemma.setFrequency(lemma.getFrequency()+1);
+                lemma.setFrequency(lemma.getFrequency()+1);
         }
         list = deleteExcessLemma(list, keys);
         return  list;
@@ -219,7 +215,8 @@ public class LemmatizatorServiсeImpl implements LemmatizatorService {
                 int statusResponse = document.connection().response().statusCode();
                 p =  new Page(1, s, urlForPath,
                         statusResponse, document.head().toString()+document.body().toString());
-                p=pageReposytory.save(p);
+                    p=pageReposytory.save(p);
+
             }
         }
         return p;

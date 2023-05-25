@@ -48,6 +48,15 @@ public class SubLemmatizatorController {
         });
     }
 
+    public void newStartLematization(Page page){
+        dequeLinksForLematizator.addLast(page);
+        while (!dequeLinksForLematizator.isEmpty()){
+            lematizatorServise.setPathParsingLink(dequeLinksForLematizator.removeFirst());
+            lematizatorServise.setRewritePage(false);
+            lematizatorServise.runing();
+        }
+    }
+
     public void shutdown() {
         dequeLinksForLematizator.clear();
         es.shutdown(); // Disable new tasks from being submitted
