@@ -10,9 +10,9 @@ import org.springframework.http.ResponseEntity;
 import searchengine.dto.responce.IndexingResponseOk;
 import searchengine.dto.responce.UriForPost;
 import searchengine.dto.search.SearchResponce;
-import searchengine.lemmatization.LemmatizatorServiсeImpl;
+import searchengine.hellperClasses.lemmatization.Lemmatizator;
 import searchengine.services.IndexingServiceImpl;
-import searchengine.wordsearchresponse.SearchStatisticImplPreparationResponse;
+import searchengine.services.SearchStatisticImpl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -21,9 +21,9 @@ import static org.mockito.Mockito.*;
 class ApiControllerTest {
 
     @Mock
-    SearchStatisticImplPreparationResponse searchStatistic;
+    SearchStatisticImpl searchStatistic;
     @Mock
-    LemmatizatorServiсeImpl lematizatorServise;
+    Lemmatizator lematizatorServise;
 
     @Mock
     IndexingServiceImpl indexingService;

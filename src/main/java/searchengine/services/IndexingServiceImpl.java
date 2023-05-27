@@ -7,18 +7,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import searchengine.ParserForkJoin;
-import searchengine.config.Label;
-import searchengine.config.Site;
-import searchengine.config.SitesList;
-import searchengine.config.UserAgent;
+import searchengine.config.*;
 import searchengine.dto.responce.IndexingResponse;
 import searchengine.dto.responce.IndexingResponseNotOk;
 import searchengine.dto.responce.IndexingResponseOk;
-import searchengine.lemmatization.LemmatizatorServiсeImpl;
+import searchengine.hellperClasses.ExceptionNotUrl;
+import searchengine.hellperClasses.lemmatization.Lemmatizator;
 import searchengine.model.Page;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
-
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -43,11 +40,11 @@ public class IndexingServiceImpl implements IndexingService {
     private ForkJoinPool forkJoinPool;
     private ParserForkJoin parserForkJoin;
     private ArrayList<ParserForkJoin> listTask;
-    private LemmatizatorServiсeImpl lemmatizatorServiсe;
+    private Lemmatizator lemmatizatorServiсe;
     private Label myLabel;
     public IndexingServiceImpl(SiteRepository siteRepository, PageRepository pageReposytory,
                                UserAgent userAgent, SitesList sitesList, Label label, Logger logger,
-                               LemmatizatorServiсeImpl lemmatizatorServiсe) {
+                               Lemmatizator lemmatizatorServiсe) {
         this.siteRepository = siteRepository;
         this.pageReposytory = pageReposytory;
         this.sitesList = sitesList;
@@ -124,8 +121,6 @@ public class IndexingServiceImpl implements IndexingService {
         indexingResponseNotOk.setError("Ошибка остановки Индексации, но в целом все хорошо, нажмите обновить страницу");
         return indexingResponseNotOk;
     }
-
-
     private void startIndexing() {
         forkJoinPool =  new ForkJoinPool();
         listTask = new ArrayList<>();

@@ -6,10 +6,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import searchengine.dto.responce.*;
 import searchengine.dto.statistics.StatisticsResponse;
-import searchengine.lemmatization.LemmatizatorServiсeImpl;
+import searchengine.hellperClasses.lemmatization.Lemmatizator;
 import searchengine.services.IndexingService;
-import searchengine.statistics.StatisticsService;
-import searchengine.wordsearchresponse.SearchStatistic;
+import searchengine.services.StatisticsService;
+import searchengine.services.SearchStatistic;
 
 @RestController
 @RequestMapping("/api")
@@ -17,7 +17,7 @@ import searchengine.wordsearchresponse.SearchStatistic;
 public class ApiController {
     private SearchStatistic searchStatistic;
     private IndexingService indexingServise;
-    private LemmatizatorServiсeImpl lematizatorServise;
+    private Lemmatizator lematizatorServise;
     private StatisticsService statisticsService;
 
 
