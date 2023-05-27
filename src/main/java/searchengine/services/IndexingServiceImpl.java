@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import searchengine.ParserForkJoin;
+import searchengine.hellperClasses.ParserForkJoin;
 import searchengine.config.*;
 import searchengine.dto.responce.IndexingResponse;
 import searchengine.dto.responce.IndexingResponseNotOk;
