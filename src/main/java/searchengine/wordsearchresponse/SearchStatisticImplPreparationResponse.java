@@ -87,7 +87,7 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
             Optional<Site> site = siteRepository.findById(resultSearch.get(i).getKey().getSite().getId());
             item.setSite(site.get().getUrl());
             item.setSiteName(site.get().getName());
-            item.setSnippet(getSnippet(resultSearch.get(i).getKey().getContent()));
+            item.setSnippet(getSmallSnipet(resultSearch.get(i).getKey().getContent()));
             detailedStatisticsSearches[i-start]=item;
         }
         responce.setResult(true);
@@ -120,6 +120,110 @@ public class SearchStatisticImplPreparationResponse implements SearchStatistic{
         ArrayList<Integer> indexConcidenceLemmAndWord = getIndexConcidence(lemmsFromtext, formsNormal);
         ArrayList<String> result = getMettLemsInText(arrWords, indexConcidenceLemmAndWord);
         return result.toString();
+    }
+    private String getSmallSnipet(String content){
+        // разбиваем текст страници на пределожения
+        //делаем список списков лемм каждого предложения
+        // ищем предложение с максимальным совпадением колличества лем из запрлоса
+        List<String> qeryLemms = new ArrayList<>(search.getSetLemmQuery());
+        ArrayList<String> sentences = getSentence(content);
+        ArrayList<ArrayList<String>> sentenceByWord = getSentenceByWord(sentences);
+        ArrayList<ArrayList<List<String>>> sentenceByLemm = getSentenceByLemm(sentenceByWord);
+        HashMap<Integer, String> numberConcidienceSentenceQery = getConcidient(qeryLemms, sentences, sentenceByLemm);
+        int maxFreq = numberConcidienceSentenceQery.keySet().stream().max(Integer::compareTo).get();
+        String resultSentence = numberConcidienceSentenceQery.get(maxFreq);
+        String result = getSelection(resultSentence, query);
+        return  result;
+    }
+
+    private String getSelection(String resultSentence, String query) {
+        ArrayList<String> sentenceByWord = getWords(resultSentence);
+        Set<String> queryByLemm= search.getSetLemmQuery();
+        StringBuilder sentence = new StringBuilder();
+        int start = 0;
+        int counter= 0;
+        int lengthSnipet = 30;
+        for(String word: sentenceByWord){
+            counter++;
+            if(start!=0&&counter>lengthSnipet){
+                break;
+            }
+            String smalLeterWord = word.replaceAll("[^а-яА-ЯёЁ ]", " ").toLowerCase().trim();
+            List<String> lemms =lematizator.getLems(new String[]{smalLeterWord});
+            if(isContain(queryByLemm,lemms)){
+                if(counter>lengthSnipet/2&&start==0){
+                    counter=0;
+                    sentence = new StringBuilder();
+                }
+                start=counter;
+                sentence.append("<b>");
+                sentence.append(word);
+                sentence.append("</b> ");
+            }
+            else{
+                sentence.append(word+" ");
+            }
+            }
+        String result = sentence.toString();
+        return result;
+
+    }
+
+    private boolean isContain(Set<String> queryByLemm, List<String> lemms) {
+        for(String queryLemma: queryByLemm){
+            if(lemms.contains(queryLemma)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    private ArrayList<String> getSentence(String content) {
+        String text=Jsoup.parse(content).text();
+        text=text.replaceAll("Ё", "Е");
+        text=text.replaceAll("ё", "е");
+        ArrayList<String> sentences =new ArrayList<>(Arrays.asList(text.split("[.!?]\\s*")));
+        return sentences;
+
+    }
+
+    private ArrayList<ArrayList<String>> getSentenceByWord(ArrayList<String> sentences) {
+        ArrayList<ArrayList<String>> sentenceByWord = new ArrayList<>();
+        for(int i=0;i<sentences.size();i++){
+            sentenceByWord.add(getWords(sentences.get(i)));
+        }
+        return sentenceByWord;
+    }
+    private ArrayList<String> getWords(String sentence){
+        ArrayList<String> words = new ArrayList<>(Arrays.asList(sentence.split("[«»“”\\p{Punct}\\s]+")));
+        return words;
+
+    }
+
+
+    private ArrayList<ArrayList<List<String>>> getSentenceByLemm(ArrayList<ArrayList<String>> sentenceByWord ) {
+        ArrayList<ArrayList<List<String>>> sentenceByLemm = new ArrayList<>();
+        for(int i=0;i<sentenceByWord.size();i++){
+            sentenceByLemm.add(getLemsFromText(sentenceByWord.get(i)));
+        }
+        return sentenceByLemm;
+    }
+
+    private HashMap<Integer, String> getConcidient(List<String> qeryLemms, ArrayList<String> sentences, ArrayList<ArrayList<List<String>>> sentenceByLemm) {
+        HashMap<Integer, String> numberConcidienceSentenceQery = new HashMap<>();
+    for(int numSentence=0; numSentence<sentenceByLemm.size(); numSentence++){
+        int count =0;
+        for( int numWord=0; numWord<sentenceByLemm.get(numSentence).size(); numWord++){
+            for(int numLemm=0; numLemm<sentenceByLemm.get(numSentence).get(numWord).size();numLemm++){
+                if(qeryLemms.contains(sentenceByLemm.get(numSentence).get(numWord).get(numLemm))){
+                    ++count;
+                }
+            }
+        }
+        numberConcidienceSentenceQery.put(count, sentences.get(numSentence));
+    }
+    return numberConcidienceSentenceQery;
     }
 
     private  ArrayList<String> separated(String input) {
