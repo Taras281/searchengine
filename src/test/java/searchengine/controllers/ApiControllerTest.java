@@ -12,7 +12,7 @@ import searchengine.dto.responce.UriForPost;
 import searchengine.dto.search.SearchResponce;
 import searchengine.hellperClasses.lemmatization.Lemmatizator;
 import searchengine.services.IndexingServiceImpl;
-import searchengine.services.SearchStatisticImpl;
+import searchengine.services.SearchServiceImpl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
 class ApiControllerTest {
 
     @Mock
-    SearchStatisticImpl searchStatistic;
+    SearchServiceImpl searchStatistic;
     @Mock
     Lemmatizator lematizatorServise;
 

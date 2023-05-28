@@ -22,7 +22,7 @@ import java.util.*;
 
 @Service
 @Data
-public class SearchStatisticImpl implements SearchStatistic{
+public class SearchServiceImpl implements SearchService {
     private String  query;
     private String  site;
     private int  offset;

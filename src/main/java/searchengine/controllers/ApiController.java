@@ -9,13 +9,13 @@ import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.hellperClasses.lemmatization.Lemmatizator;
 import searchengine.services.IndexingService;
 import searchengine.services.StatisticsService;
-import searchengine.services.SearchStatistic;
+import searchengine.services.SearchService;
 
 @RestController
 @RequestMapping("/api")
 @AllArgsConstructor
 public class ApiController {
-    private SearchStatistic searchStatistic;
+    private SearchService searchStatistic;
     private IndexingService indexingServise;
     private Lemmatizator lematizatorServise;
     private StatisticsService statisticsService;
