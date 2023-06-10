@@ -8,7 +8,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import searchengine.config.Label;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
 import searchengine.dto.responce.IndexingResponseNotOk;
@@ -32,8 +31,6 @@ class IndexingServiceImplTest {
     IndexingServiceImpl indexingService;
     @Mock
     SitesList sitesList;
-    @Mock
-    Label label;
     @Autowired
     IndexingServiceImpl indexingServiceImpl;
     @Test

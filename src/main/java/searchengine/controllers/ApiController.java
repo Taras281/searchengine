@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import searchengine.dto.responce.*;
 import searchengine.dto.statistics.StatisticsResponse;
-import searchengine.hellperClasses.lemmatization.Lemmatizator;
 import searchengine.services.IndexingService;
 import searchengine.services.StatisticsService;
 import searchengine.services.SearchService;
@@ -16,10 +15,9 @@ import searchengine.services.SearchService;
 @AllArgsConstructor
 public class ApiController {
     private SearchService searchStatistic;
-    private IndexingService indexingServise;
-    private Lemmatizator lematizatorServise;
-    private StatisticsService statisticsService;
+    private IndexingService indexingServiсe;
 
+    private StatisticsService statisticsService;
 
     @GetMapping("/statistics")
     public ResponseEntity<StatisticsResponse> statistics() {
@@ -28,29 +26,25 @@ public class ApiController {
     @GetMapping("/startIndexing")
     public ResponseEntity<IndexingResponse> indexing() {
 
-        return indexingServise.getStartResponse();
+        return indexingServiсe.getStartResponse();
     }
 
     @GetMapping("/stopIndexing")
     public ResponseEntity<IndexingResponse> stopIndexing() throws InterruptedException {
-        ResponseEntity<IndexingResponse> resp =indexingServise.getStopIndexing();
+        ResponseEntity<IndexingResponse> resp = indexingServiсe.getStopResponse();
         return resp;
     }
-    @GetMapping("/indexPage")
-    public ResponseEntity<IndexingResponse> indexingPage(@RequestParam("url") String uri){
-        return lematizatorServise.getResponse(uri);
-    }
+
     @PostMapping(value = "/indexPage", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public ResponseEntity<IndexingResponse> indexingPagePost(UriForPost url){
-        String u = url.getUrl().replaceAll("%3A%2F%2F", "://");
-        return indexingServise.getResponseIndexing(u);
+    public ResponseEntity<IndexingResponse> indexingPagePost(String url){
+        return indexingServiсe.getResponseIndexing(url);
     }
     @GetMapping("/search")
     public ResponseEntity<IndexingResponse> search(@RequestParam(value = "query", required = false) String  query,
                                                    @RequestParam(value = "site", required = false, defaultValue = "-1") String  site,
                                                    @RequestParam(value = "offset", required = false, defaultValue = "0") String  offset,
                                                    @RequestParam(value = "limit", required = false, defaultValue = "10000") String  limit){
-        query.trim();
+    query.trim();
     return  searchStatistic.getStatistics(query, site, limit, offset);
     }
 

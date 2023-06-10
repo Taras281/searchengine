@@ -9,10 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public interface IndexRepository extends JpaRepository<Index, Integer> {
-
     List<Index> findAllByPageId(Page page);
-
     List<Index> findAllByLemmaId(Lemma lemma);
-
     List<Index> findAllByPageIdIn(List<Page> listPageId);
 }

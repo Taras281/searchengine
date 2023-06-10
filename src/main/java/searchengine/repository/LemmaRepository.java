@@ -10,10 +10,6 @@ import java.util.Set;
 
 @Repository
 public interface LemmaRepository extends JpaRepository<Lemma, Integer> {
-
     List<Lemma> findAllByLemmaIn(Set<String> setLems);
-
-    ArrayList<Lemma> findAllBySite(Site idSite);
-
-
+    int countBySite(Site siteModel);
 }

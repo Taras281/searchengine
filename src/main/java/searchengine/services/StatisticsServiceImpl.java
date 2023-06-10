@@ -9,7 +9,6 @@ import searchengine.dto.statistics.DetailedStatisticsItem;
 import searchengine.dto.statistics.StatisticsData;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.dto.statistics.TotalStatistics;
-import searchengine.model.Lemma;
 import searchengine.model.Page;
 import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
@@ -24,10 +23,9 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Autowired
     SiteRepository siteRepository;
     @Autowired
-    PageRepository pageReposytory;
-
+    PageRepository pageRepository;
     @Autowired
-    LemmaRepository lemmaReposytory;
+    LemmaRepository lemmaRepository;
     private String myErrorStatus = "-111";
     private final SitesList sites;
 
@@ -53,19 +51,18 @@ public class StatisticsServiceImpl implements StatisticsService {
             item.setName(site.getName());
             item.setUrl(site.getUrl());
             List<searchengine.model.Site> siteModelList = siteRepository.findByName(sitesList.get(i).getName());
-            if(siteModelList.size()>1){
+            if(siteModelList.size()!=1){
                 return getErrorBaseTableSite();
             }
             searchengine.model.Site siteModel = siteModelList.get(0);
             if(siteModel==null){continue;}
-            ArrayList<Page> pagesSite = pageReposytory.findAllBySite(siteModel);
+            ArrayList<Page> pagesSite = pageRepository.findAllBySite(siteModel);
             int pages = pagesSite.size();
             if(pages>0){
-                ArrayList<Lemma> lemma = lemmaReposytory.findAllBySite(siteModel);
-                int lemmas = lemma.size();
-                setParametrsItem(item, pages, lemmas, siteModel);
+                int numberLemms = lemmaRepository.countBySite(siteModel);
+                setParametrsItem(item, pages, numberLemms, siteModel);
                 total.setPages(total.getPages() + pages);
-                total.setLemmas(total.getLemmas() + lemmas);
+                total.setLemmas(total.getLemmas() + numberLemms);
                 detailed.add(item);
             }
         }
@@ -79,7 +76,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         item.setLemmas(lemmas);
         item.setStatus(siteModel.getStatus().name());
         item.setError(siteModel.getLastError());
-        item.setStatusTime(siteModel.getStatusTime());
+        item.setStatusTime(siteModel.getStatusTime().toString());
     }
 
     private StatisticsData getErrorBaseTableSite() {

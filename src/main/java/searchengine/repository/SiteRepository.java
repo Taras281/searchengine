@@ -6,12 +6,13 @@ import searchengine.model.Site;
 import searchengine.config.StatusEnum;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 @Repository
 public interface SiteRepository extends JpaRepository<Site, Long> {
     Site findByUrl(String url);
     ArrayList<Site> findByName(String url);
-
     ArrayList<Site>  findByStatus(StatusEnum indexing);
+
 }
