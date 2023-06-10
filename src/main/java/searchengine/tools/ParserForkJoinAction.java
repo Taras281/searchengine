@@ -56,14 +56,17 @@ public class ParserForkJoinAction extends RecursiveAction {
 
     private Page getNewPage(Site site, String urlPage, Document document) {
         int status = document.connection().response().statusCode();
-        return  new Page(1, site, urlPage,status, document.html());
+        site.setStatusTime(LocalDateTime.now());
+        return  new Page(1, site, urlPage, status, document.html());
     }
     private Set getSetUrl(Site site, Document document) {
         Elements elementLinks = document.select("a[href]");
-        List<String> urlPagesFromBase = indexingService.getPages().stream().map(page -> page.getPath()).collect(Collectors.toList());
         Set<String> links= elementLinks.stream().map(link-> link.attr("abs:href"))
-                                                .filter(l->l.contains(site.getUrl()))
-                                                .filter(l->!allFindLink.contains(l)).collect(Collectors.toSet());
+                .filter(l->l.contains(site.getUrl()))
+                .filter(l->!allFindLink.contains(l)).collect(Collectors.toSet());
+        Set<String> linksForCheckBase = links.stream().map(l->indexingService.remoovePrefix(site,l)).collect(Collectors.toSet());
+        List<String> urlPagesFromBase = indexingService.getPages(site, linksForCheckBase).stream().map(page -> page.getPath()).collect(Collectors.toList());
+
         allFindLink.addAll(links);
         links = links.stream().map(l->indexingService.remoovePrefix(site,l)).filter(l->!urlPagesFromBase.contains(l)).collect(Collectors.toSet());
         Set<String> res = links.stream()

@@ -45,6 +45,7 @@ public class IndexingServiceImpl implements IndexingService {
     private Lemmatizator lemmatizatorServiсe;
     private Label myLabel;
     private Set<Long> siteIdListForCheckStopped;
+    private Set<Page> pages;
     public IndexingServiceImpl(SiteRepository siteRepository, PageRepository pageReposytory,
                                UserAgent userAgent, SitesList sitesList, Label label, Logger logger,
                                Lemmatizator lemmatizatorServiсe) {
@@ -60,6 +61,7 @@ public class IndexingServiceImpl implements IndexingService {
     public ResponseEntity<IndexingResponse> getStartResponse(){
         if(siteRepository.findByStatus(StatusEnum.INDEXING).size()<1){
             siteIdListForCheckStopped = new HashSet<>();
+            pages = new HashSet<>();
             startIndexing();
             return new ResponseEntity<>(createIndexingResponseOk(), HttpStatus.OK);
         }
@@ -117,23 +119,46 @@ public class IndexingServiceImpl implements IndexingService {
         if(siteIdListForCheckStopped.contains(newPage.getSite().getId())){
            newPage.getSite().setStatus(StatusEnum.FAILED);
         }
-            pageRepository.save(newPage);
+            pages.add(newPage);
+            if(pages.size()>150){
+                saveDataBase(pages);
+            }
+            /*pageRepository.save(newPage);
             searchengine.model.Site site = newPage.getSite();
             site.setStatusTime(LocalDateTime.now());
-            siteRepository.save(site);
+            siteRepository.save(site);*/
         }
     }
 
+    private void saveDataBase(Set<Page> pages){
+        //Set<searchengine.model.Site> listSite = getSites(pages);
+        pageRepository.saveAll(pages);
+        //siteRepository.saveAll(listSite);
+        pages.clear();
+    }
+
+    private Set<searchengine.model.Site> getSites(Set<Page> pages) {
+        Set<searchengine.model.Site> sites = new HashSet<>();
+        for(Page page: pages){
+            if(!sites.contains(page.getSite())){
+                searchengine.model.Site site = page.getSite();
+                site.setStatusTime(LocalDateTime.now());
+                sites.add(site);
+            }
+        }
+        return sites;
+    }
+
     @Override
-    public List<Page> getPages() {
-        return pageRepository.findAll();
+    public Set<Page> getPages(searchengine.model.Site site, Set<String> links) {
+        return pageRepository.findAllBySiteAndPathIn(site, links);
     }
     @Override
     public void saveError(searchengine.model.Site site, String s) {
         synchronized (siteRepository){
         site.setLastError(s);
         site.setStatusTime(LocalDateTime.now());
-               siteRepository.save(site);
+        siteRepository.save(site);
     }}
 
     @Override
@@ -178,7 +203,7 @@ public class IndexingServiceImpl implements IndexingService {
                 forkJoinPool.invoke(pfj);
                 if(!siteIdListForCheckStopped.contains(pfj.getSite().getId()))
                 {pfj.getSite().setStatus(StatusEnum.INDEXED);}
-                siteRepository.save(pfj.getSite());
+                saveDataBase(pages);
             }).start();
         }
     }

@@ -9,6 +9,7 @@ import searchengine.model.Site;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
 import java.util.List;
+import java.util.Set;
 
 public interface IndexingService {
     PageRepository pageRepository = null;
@@ -19,7 +20,7 @@ public interface IndexingService {
 
     void addBase(Page newPage);
 
-    List<Page> getPages();
+    Set<Page> getPages(Site site, Set<String> links);
 
     void saveError(Site site, String s);
     StatusEnum getStatus(Site site);

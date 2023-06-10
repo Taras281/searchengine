@@ -14,8 +14,6 @@ import searchengine.model.Page;
 import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
-
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -88,7 +86,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         item.setLemmas(lemmas);
         item.setStatus(siteModel.getStatus().name());
         item.setError(siteModel.getLastError());
-        item.setStatusTime(LocalDateTime.now());
+        item.setStatusTime(siteModel.getStatusTime());
     }
 
     private StatisticsData getErrorBaseTableSite(String myErrorStatus) {
