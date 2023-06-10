@@ -14,6 +14,8 @@ import searchengine.model.Page;
 import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,9 +56,16 @@ public class StatisticsServiceImpl implements StatisticsService {
             item.setUrl(site.getUrl());
             List<searchengine.model.Site> siteModelList = siteRepository.findByName(sitesList.get(i).getName());
             if(siteModelList.size()>1){
-                return getErrorBaseTableSite();
+                return getErrorBaseTableSite("База вернула не однозначный ответ(список сайтов) позовите системного администратора");
             }
-            searchengine.model.Site siteModel = siteModelList.get(0);
+            searchengine.model.Site siteModel;
+            try{
+                 siteModel = siteModelList.get(0);
+            }
+           catch (IndexOutOfBoundsException ibe){
+                return getErrorBaseTableSite("Таблица  site  еще не заполнена");
+            }
+
             if(siteModel==null){continue;}
             ArrayList<Page> pagesSite = pageReposytory.findAllBySite(siteModel);
             int pages = pagesSite.size();
@@ -79,12 +88,12 @@ public class StatisticsServiceImpl implements StatisticsService {
         item.setLemmas(lemmas);
         item.setStatus(siteModel.getStatus().name());
         item.setError(siteModel.getLastError());
-        item.setStatusTime(siteModel.getStatusTime());
+        item.setStatusTime(LocalDateTime.now());
     }
 
-    private StatisticsData getErrorBaseTableSite() {
+    private StatisticsData getErrorBaseTableSite(String myErrorStatus) {
         DetailedStatisticsItem detailedStatisticsItem = new DetailedStatisticsItem();
-        detailedStatisticsItem.setError("База вернула не однозначный ответ(список сайтов) позовите системного администратора");
+        detailedStatisticsItem.setError(myErrorStatus);
         detailedStatisticsItem.setStatus(myErrorStatus);
         List<DetailedStatisticsItem> error  = new ArrayList<>();
         error.add(detailedStatisticsItem);

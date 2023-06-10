@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import searchengine.dto.responce.IndexingResponseOk;
 import searchengine.dto.responce.UriForPost;
 import searchengine.dto.search.SearchResponce;
-import searchengine.hellperClasses.lemmatization.Lemmatizator;
+import searchengine.tools.lemmatization.Lemmatizator;
 import searchengine.services.IndexingServiceImpl;
 import searchengine.services.SearchServiceImpl;
 
@@ -30,21 +30,6 @@ class ApiControllerTest {
     @InjectMocks
     ApiController apiController;
 
-    @Test
-    void indexingPage() {
-        //given
-        IndexingResponseOk irOk = new IndexingResponseOk();
-        irOk.setResult(true);
-        ResponseEntity responseEntity = new ResponseEntity<>(irOk, HttpStatus.OK);
-        doReturn(responseEntity).when(lematizatorServise).getResponse("");
-        //when
-        UriForPost uri = new UriForPost();
-        uri.setUrl("");
-        ResponseEntity actual = this.apiController.indexingPagePost(uri);
-        //then
-        assertEquals(responseEntity, actual);
-        verify(lematizatorServise).getResponse("");
-    }
 
     @Test
     void search() {

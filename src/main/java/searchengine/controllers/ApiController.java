@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import searchengine.dto.responce.*;
 import searchengine.dto.statistics.StatisticsResponse;
-import searchengine.hellperClasses.lemmatization.Lemmatizator;
+import searchengine.tools.lemmatization.Lemmatizator;
 import searchengine.services.IndexingService;
 import searchengine.services.StatisticsService;
 import searchengine.services.SearchService;
@@ -36,14 +36,13 @@ public class ApiController {
         ResponseEntity<IndexingResponse> resp =indexingServise.getStopIndexing();
         return resp;
     }
-    @GetMapping("/indexPage")
+  /*  @GetMapping("/indexPage")
     public ResponseEntity<IndexingResponse> indexingPage(@RequestParam("url") String uri){
         return lematizatorServise.getResponse(uri);
-    }
+    }*/
     @PostMapping(value = "/indexPage", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public ResponseEntity<IndexingResponse> indexingPagePost(UriForPost url){
-        String u = url.getUrl().replaceAll("%3A%2F%2F", "://");
-        return indexingServise.getResponseIndexing(u);
+    public ResponseEntity<IndexingResponse> indexingPagePost(String url){
+        return indexingServise.getResponseIndexing(url);
     }
     @GetMapping("/search")
     public ResponseEntity<IndexingResponse> search(@RequestParam(value = "query", required = false) String  query,

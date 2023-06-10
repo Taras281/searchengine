@@ -15,8 +15,8 @@ import searchengine.dto.search.SearchResponce;
 import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repository.SiteRepository;
-import searchengine.hellperClasses.lemmatization.LemmatizatorReturnCountWord;
-import searchengine.hellperClasses.Searcher;
+import searchengine.tools.lemmatization.LemmatizatorReturnCountWord;
+import searchengine.tools.Searcher;
 
 import java.util.*;
 
