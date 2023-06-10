@@ -26,6 +26,9 @@ public class ParserForkJoinAction extends RecursiveAction {
     @Override
     protected void compute() {
         if(site.getStatus().equals(StatusEnum.FAILED)){
+            site.setLastError("Индексация остановлена пользователем");
+            site.setStatusTime(LocalDateTime.now());
+            indexingService.addBase(new Page(1,site, urlPage, 418, ""));
             return;
         }
         Document document = indexingService.getDocument(site, urlPage);

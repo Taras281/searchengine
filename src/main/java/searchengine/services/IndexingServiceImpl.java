@@ -267,8 +267,8 @@ public class IndexingServiceImpl implements IndexingService {
                     .get();
         } catch (IOException e) {
             synchronized (urlPage){
-                addBase(new Page(1, site, urlPage, 418,""));
-                saveError(site, "Error pars url " + urlPage + "  " +e.toString());
+                addBase(new Page(1, site, urlPage, 522,""));
+                saveError(site, "Error pars url code = "+ 522 + " " + site.getUrl().concat(urlPage) + "  " +e.toString());
             }
         }
         return document;
