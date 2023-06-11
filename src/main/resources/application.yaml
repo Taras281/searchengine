@@ -9,14 +9,6 @@ spring:
         eSSL=false&allowPublicKeyRetrieval=true
    driver-class-name: com.mysql.cj.jdbc.Driver
 
-     #  com.mysql.cj.jdbc.Driver
-
-     # net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-
-   #        jdbc:log4jdbc:mysql://localhost:3306/search_engine?useSSL=false&requir
-   #        eSSL=false&allowPublicKeyRetrieval=true
-
-
 
  jpa:
   properties:
@@ -44,15 +36,10 @@ indexing-settings:
     #- url: https://www.playback.ru
       #name: PlayBack.Ru
 
-
-
-
-
 ---
 indexing-agent:
          userAgent: Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6
          referrer: http://www.google.com
-
 
 ---
 logging:
@@ -63,15 +50,6 @@ logging:
      springframework:
        web: DEBUG
 
-
----
-
-my-labels:
-   indexingStarted: Индексация уже запущена
-   indexingNotStarted: Индексация еще не запущена
-   indexingStopedUser: Индексация остановлена пользователем
-   thisPageOutSite: Данная страница находится за пределами сайтов, указанных в конфигурационном файле
-   checkPage: Проверте правильность написания адреса
 
 
 

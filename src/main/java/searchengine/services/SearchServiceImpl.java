@@ -15,7 +15,7 @@ import searchengine.dto.search.SearchResponce;
 import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repository.SiteRepository;
-import searchengine.tools.lemmatization.LemmatizatorReturnCountWord;
+import searchengine.tools.LemmatizatorReturnCountWord;
 import searchengine.tools.Searcher;
 
 import java.util.*;
@@ -28,50 +28,48 @@ public class SearchServiceImpl implements SearchService {
     private int  offset;
     private int  limit;
     @Autowired
-    private Searcher search;
+    private Searcher searcher;
     @Autowired
-    private LemmatizatorReturnCountWord lematizator;
+    private LemmatizatorReturnCountWord lemmatizator;
     @Autowired
     SiteRepository siteRepository;
-
     @Autowired
     Logger logger;
-
+    @Override
+    public ResponseEntity getStatistics(String query, String site, String limit, String offset){
+        this.setLimit(Integer.parseInt(limit));
+        this.setSite(site);
+        this.setQuery(query);
+        this.setOffset(Integer.parseInt(offset));
+        SearchResponce responce = this.getStatistics();
+        return  new ResponseEntity(responce, HttpStatus.OK);
+    }
     public SearchResponce getStatistics() {
+        query = query.replaceAll("[^а-яА-ЯёЁ ]", "");
         if(query.equals("")){
-            SearchResponce responce = new SearchResponce();
-            responce.setResult(false);
-            responce.setError("Задан пустой поисковый запрос");
-            return responce;
+            return getSimpleResponce(false, getEmptyData(), "Задан пустой поисковый запрос, или запрос содержит латинские или просто символы");
         }
-        if(query.matches(".*[a-zA-Z]+.*")){
-            SearchResponce responce = new SearchResponce();
-            responce.setResult(false);
-            responce.setError("Поисковый запрос не должен содержать латинские буквы и символы");
-            return responce;
-        }
-        search.setLimit(limit);
-        search.setOffset(offset);
-        search.setSite(site);
-        ArrayList<Map.Entry<Page, float[]>> resultSearch = search.vorker(query);
+        searcher.setLimit(limit);
+        searcher.setOffset(offset);
+        searcher.setSite(site);
+        ArrayList<Map.Entry<Page, float[]>> resultSearch = searcher.vorker(query);
         if(resultSearch==null){
-            SearchResponce responce = new SearchResponce();
-            responce.setResult(true);
-            responce.setData(getEmptyData());
-            responce.setError("результаты не найдены");
-            return responce;
+            return getSimpleResponce(false, getEmptyData(), "результаты не найдены" );
         }
         if(resultSearch.get(0).getKey().getCode()==-1){
-            SearchResponce responce = new SearchResponce();
-            responce.setResult(true);
-            responce.setData(getEmptyData());
-            responce.setError("Слова - \"" +resultSearch.get(0).getKey().getPath() + "\" не найдены в базе, уберите их пожалуйста");
-            return responce;
+            return getSimpleResponce(false, getEmptyData(), "Слова - \"" +resultSearch.get(0).getKey().getPath() + "\" не найдены в базе, уберите их пожалуйста");
         }
         SearchResponce responce = getResponse(resultSearch);
         return responce;
     }
-
+    private SearchResponce getSimpleResponce(Boolean result, DetailedStatisticsSearch[] detailedStatisticsSearches,
+                                             String error){
+        SearchResponce responce = new SearchResponce();
+        responce.setResult(result);
+        responce.setData(detailedStatisticsSearches);
+        responce.setError(error);
+        return  responce;
+    }
     private SearchResponce getResponse(ArrayList<Map.Entry<Page, float[]>> resultSearch) {
         SearchResponce responce = new SearchResponce();
         int countPage = resultSearch.size();
@@ -110,20 +108,20 @@ public class SearchServiceImpl implements SearchService {
     }
 
     private String getSmallSnipet(String content){
-        List<String> qeryLemms = new ArrayList<>(search.getSetLemmQuery());
+        List<String> queryLemms = new ArrayList<>(searcher.getSetLemmQuery());
         ArrayList<String> sentences = getSentence(content);
         ArrayList<ArrayList<String>> sentenceByWord = getSentenceByWord(sentences);
         ArrayList<ArrayList<List<String>>> sentenceByLemm = getSentenceByLemm(sentenceByWord);
-        HashMap<Integer, String> numberConcidienceSentenceQery = getConcidient(qeryLemms, sentences, sentenceByLemm);
-        int maxFreq = numberConcidienceSentenceQery.keySet().stream().max(Integer::compareTo).get();
-        String resultSentence = numberConcidienceSentenceQery.get(maxFreq);
+        HashMap<Integer, String> numberConcidienceSentenceQuery = getConcidient(queryLemms, sentences, sentenceByLemm);
+        int maxFreq = numberConcidienceSentenceQuery.keySet().stream().max(Integer::compareTo).get();
+        String resultSentence = numberConcidienceSentenceQuery.get(maxFreq);
         String result = getSelection(resultSentence, query);
         return  result;
     }
 
     private String getSelection(String resultSentence, String query) {
         ArrayList<String> sentenceByWord = getWords(resultSentence);
-        Set<String> queryByLemm= search.getSetLemmQuery();
+        Set<String> queryByLemm= searcher.getSetLemmQuery();
         StringBuilder sentence = new StringBuilder();
         int start = 0;
         int counter= 0;
@@ -134,7 +132,7 @@ public class SearchServiceImpl implements SearchService {
                 break;
             }
             String smalLeterWord = word.replaceAll("[^а-яА-ЯёЁ ]", " ").toLowerCase().trim();
-            List<String> lemms =lematizator.getLems(new String[]{smalLeterWord});
+            List<String> lemms = lemmatizator.getlemss(new String[]{smalLeterWord});
             if(isContain(queryByLemm,lemms)){
                 if(counter>lengthSnipet/2&&start==0){
                     counter=0;
@@ -162,8 +160,6 @@ public class SearchServiceImpl implements SearchService {
         }
         return false;
     }
-
-
     private ArrayList<String> getSentence(String content) {
         String text=Jsoup.parse(content).text();
         text=text.replaceAll("Ё", "Е");
@@ -192,41 +188,40 @@ public class SearchServiceImpl implements SearchService {
         return sentenceByLemm;
     }
 
-    private HashMap<Integer, String> getConcidient(List<String> qeryLemms, ArrayList<String> sentences, ArrayList<ArrayList<List<String>>> sentenceByLemm) {
-        HashMap<Integer, String> numberConcidienceSentenceQery = new HashMap<>();
+    private HashMap<Integer, String> getConcidient(List<String> queryLemms, ArrayList<String> sentences, ArrayList<ArrayList<List<String>>> sentenceByLemm) {
+        HashMap<Integer, String> numberConcidienceSentenceQuery = new HashMap<>();
     for(int numSentence=0; numSentence<sentenceByLemm.size(); numSentence++){
-        int count =0;
+        int count = 0;
         for( int numWord=0; numWord<sentenceByLemm.get(numSentence).size(); numWord++){
             for(int numLemm=0; numLemm<sentenceByLemm.get(numSentence).get(numWord).size();numLemm++){
-                if(qeryLemms.contains(sentenceByLemm.get(numSentence).get(numWord).get(numLemm))){
+                if(queryLemms.contains(sentenceByLemm.get(numSentence).get(numWord).get(numLemm))){
                     ++count;
                 }
             }
         }
-        numberConcidienceSentenceQery.put(count, sentences.get(numSentence));
+        numberConcidienceSentenceQuery.put(count, sentences.get(numSentence));
     }
-    return numberConcidienceSentenceQery;
+    return numberConcidienceSentenceQuery;
     }
-
     private ArrayList<List<String>> getLemsFromText(ArrayList<String> arrWords) {
-        ArrayList<List<String>> lemmsFromtext = new ArrayList<>();
+        ArrayList<List<String>> lemmsFromText = new ArrayList<>();
         for(int i=0;i<arrWords.size();i++){
             String word = arrWords.get(i);
             try{
                 word = word.toLowerCase();
                 if(word.length()<2){
-                    lemmsFromtext.add(Arrays.asList(word));
+                    lemmsFromText.add(Arrays.asList(word));
                     continue;
                 }
-                List<String> normalForm = lematizator.luceneMorph.getNormalForms(word);
-                lemmsFromtext.add(normalForm);
+                List<String> normalForm = lemmatizator.luceneMorph.getNormalForms(word);
+                lemmsFromText.add(normalForm);
             }
             catch (WrongCharaterException wce){
-                lemmsFromtext.add(Arrays.asList(word));
+                lemmsFromText.add(Arrays.asList(word));
                 logger.error(wce.toString());
             }
         }
-        return lemmsFromtext;
+        return lemmsFromText;
     }
     private String getTitle(String content) {
         Document document = Jsoup.parse(content);
@@ -241,13 +236,5 @@ public class SearchServiceImpl implements SearchService {
         }
         return title;
     }
-    @Override
-    public ResponseEntity getStatistics(String query, String site, String limit, String offset){
-        this.setLimit(Integer.parseInt(limit));
-        this.setSite(site);
-        this.setQuery(query);
-        this.setOffset(Integer.parseInt(offset));
-        SearchResponce responce = this.getStatistics();
-        return  new ResponseEntity(responce, HttpStatus.OK);
-    }
+
 }

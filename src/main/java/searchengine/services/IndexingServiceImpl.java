@@ -15,11 +15,10 @@ import searchengine.model.Lemma;
 import searchengine.repository.IndexRepository;
 import searchengine.repository.LemmaRepository;
 import searchengine.tools.ParserForkJoinAction;
-import searchengine.tools.lemmatization.Lemmatizator;
 import searchengine.model.Page;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
-import searchengine.tools.lemmatization.LemmatizatorReturnCountWord;
+import searchengine.tools.LemmatizatorReturnCountWord;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -33,32 +32,25 @@ import java.util.stream.Collectors;
 public class IndexingServiceImpl implements IndexingService {
 
     private final SiteRepository siteRepository;
-
     private final PageRepository pageRepository;
     private  final LemmaRepository lemmaRepository;
     private final IndexRepository indexRepository;
-
     private UserAgent userAgent;
-
     private SitesList sitesList;
-
     private Logger logger;
     private ForkJoinPool forkJoinPool;
     private ParserForkJoinAction parserForkJoinAction;
     private ArrayList<ParserForkJoinAction> listTask;
-    private Lemmatizator lemmatizatorServiсe;
-    private Label myLabel;
     private Set<Long> siteIdListForCheckStopped;
     private Set<Page> pages;
-    LemmatizatorReturnCountWord lemmatizator;
+    private LemmatizatorReturnCountWord lemmatizator;
     public IndexingServiceImpl(SiteRepository siteRepository, PageRepository pageReposytory,
-                               UserAgent userAgent, SitesList sitesList, Label label, Logger logger,
+                               UserAgent userAgent, SitesList sitesList,  Logger logger,
                                LemmatizatorReturnCountWord lemmatizator, LemmaRepository lemmaRepository,
                                IndexRepository indexRepository) {
         this.siteRepository = siteRepository;
         this.pageRepository = pageReposytory;
         this.sitesList = sitesList;
-        this.myLabel = label;
         this.userAgent = userAgent;
         this.logger = logger;
         this.lemmatizator = lemmatizator;
@@ -73,10 +65,10 @@ public class IndexingServiceImpl implements IndexingService {
             startIndexing();
             return new ResponseEntity<>(createIndexingResponseOk(), HttpStatus.OK);
         }
-        return  new ResponseEntity<>(createResponseNotOk(myLabel.getIndexingStarted()), HttpStatus.OK);
+        return  new ResponseEntity<>(createResponseNotOk("Индексация уже запущена"), HttpStatus.OK);
     }
 
-    public ResponseEntity<IndexingResponse> getStopIndexing() throws InterruptedException {
+    public ResponseEntity<IndexingResponse> getStopIndexing(){
         if(siteRepository.findByStatus(StatusEnum.INDEXING).size()>0){
             synchronized (siteRepository){
                 ArrayList<searchengine.model.Site> sites = siteRepository.findByStatus(StatusEnum.INDEXING);
@@ -90,32 +82,20 @@ public class IndexingServiceImpl implements IndexingService {
             return new ResponseEntity<>(createIndexingResponseOk(), HttpStatus.OK);
         }
         else {
-            return new ResponseEntity<>(createResponseNotOk(myLabel.getIndexingNotStarted()), HttpStatus.OK);
+            return new ResponseEntity<>(createResponseNotOk("Индексация ещё не запущена"), HttpStatus.OK);
         }
     }
-
     public ResponseEntity<IndexingResponse> getResponseIndexing(String uri) {
         Page page = getPageFromUri(uri);
-        IndexingResponseNotOk indexingResponseNotOk = new IndexingResponseNotOk();
-        IndexingResponseOk indexingResponseOk = new IndexingResponseOk();
         if(!validUrl(uri)){
-            indexingResponseNotOk.setResult(false);
-            indexingResponseNotOk.setError("Проверте правильность написания адреса");
-            return new ResponseEntity<>(indexingResponseNotOk, HttpStatus.OK);
+            return new ResponseEntity<>(createResponseNotOk("Проверте правильность написания адреса"), HttpStatus.OK);
         }
         if (page==null){
-            indexingResponseNotOk.setResult(false);
-            indexingResponseNotOk.setError("Данная страница находится за пределами сайтов, указанных в конфигурационном файле");
-            return new ResponseEntity<>(indexingResponseNotOk, HttpStatus.OK);
+            return new ResponseEntity<>(createResponseNotOk("Данная страница находится за пределами сайтов, указанных в конфигурационном файле"), HttpStatus.OK);
         }
         if (uriContainsSiteList(uri)) {
-            savePageBase(page);
-            indexingResponseOk.setResult(true);
-            return new ResponseEntity<>(indexingResponseOk, HttpStatus.OK);}
-        else{
-            indexingResponseNotOk.setError(myLabel.getThisPageOutSite());
-            return new ResponseEntity<>(indexingResponseNotOk, HttpStatus.BAD_REQUEST);
-        }
+            savePageBase(page);}
+            return new ResponseEntity<>(createIndexingResponseOk(), HttpStatus.OK);
     }
     private void startIndexing() {
         forkJoinPool =  new ForkJoinPool();
@@ -126,9 +106,9 @@ public class IndexingServiceImpl implements IndexingService {
             searchengine.model.Site siteForBase = returnModelSite(StatusEnum.INDEXING, getDataTime(), "", url, site.getName());
             searchengine.model.Site siteFromBase=null;
             synchronized (siteRepository) {
-                siteFromBase = siteRepository.save(siteForBase);
+            siteFromBase = siteRepository.save(siteForBase);
             }
-            parserForkJoinAction =  new ParserForkJoinAction(siteFromBase,"",this, new HashSet<>(), userAgent);
+            parserForkJoinAction = new ParserForkJoinAction(siteFromBase,"",this, new HashSet<>(), userAgent);
             listTask.add(parserForkJoinAction);
         }
         for (ParserForkJoinAction pfj: listTask){
@@ -151,11 +131,6 @@ public class IndexingServiceImpl implements IndexingService {
             savePageBase(newPage);
         }
     }
-
-    /*private void saveDataBase(Set<Page> pages){
-        pageRepository.saveAll(pages);
-        pages.clear();
-    }*/
     private void savePageBase(Page page){
         page = pageRepository.save(page);
         synchronized (lemmaRepository){
@@ -164,24 +139,22 @@ public class IndexingServiceImpl implements IndexingService {
             }
         }
     }
-
     public void writeBaseLemmsTableIndex(Page page) {
         searchengine.model.Site site = page.getSite();
         String content = page.getContent();
         HashMap<String, Integer> lemmsFromPage = lemmatizator.getLems(content);
         List<Lemma> lemmaFromBase = getLemmsFromBase(lemmsFromPage);
-        HashMap<String, Integer> nameLemmaNoYetWriteBase = getLemmsNotYetWriteBase(lemmsFromPage, lemmaFromBase);
-        List<Lemma> lemmaNoYetWriteBase = getListLemmsForSaveBase(nameLemmaNoYetWriteBase, site);
-        lemmaFromBase.addAll(lemmaNoYetWriteBase);
+        HashMap<String, Integer> nameLemmaNotYetWriteBase = getLemmsNotYetWriteBase(lemmsFromPage, lemmaFromBase);
+        List<Lemma> lemmaNotYetWriteBase = getListLemmsForSaveBase(nameLemmaNotYetWriteBase, site);
+        lemmaFromBase.addAll(lemmaNotYetWriteBase);
         List<Index> indexFromBase = getIndex(lemmaFromBase, lemmsFromPage, page);
-
         lemmaRepository.saveAll(lemmaFromBase);
         indexRepository.saveAll(indexFromBase);
     }
-    private List<Index> getIndex(List<Lemma> lemmaFromBase, HashMap<String, Integer> lemsFromPage, Page page) {
+    private List<Index> getIndex(List<Lemma> lemmaFromBase, HashMap<String, Integer> lemmsFromPage, Page page) {
         List<Index> indexList = new ArrayList<>();
         for(Lemma lemma: lemmaFromBase){
-            int rank = lemsFromPage.get(lemma.getLemma());
+            int rank = lemmsFromPage.get(lemma.getLemma());
             indexList.add(getIndex(lemma, page, rank));
         }
         return  indexList;
@@ -193,8 +166,8 @@ public class IndexingServiceImpl implements IndexingService {
         index.setPageId(page);
         return  index;
     }
-    private synchronized List<Lemma> getLemmsFromBase(HashMap<String, Integer> lemsFromPage) {
-        Set<String> keys=lemsFromPage.keySet();
+    private synchronized List<Lemma> getLemmsFromBase(HashMap<String, Integer> lemmsFromPage) {
+        Set<String> keys=lemmsFromPage.keySet();
         List<Lemma> list= lemmaRepository.findAllByLemmaIn(keys);
         for(Lemma lemma:list){
             lemma.setFrequency(lemma.getFrequency()+1);
@@ -231,25 +204,18 @@ public class IndexingServiceImpl implements IndexingService {
             }
         }
         return  resultLemms;
-
     }
     @Override
     public Set<Page> getPages(searchengine.model.Site site, Set<String> links) {
         return pageRepository.findAllBySiteAndPathIn(site, links);
     }
     @Override
-    public void saveError(searchengine.model.Site site, String s) {
+    public void saveError(searchengine.model.Site site, String error) {
         synchronized (siteRepository){
-        site.setLastError(s);
+        site.setLastError(error);
         site.setStatusTime(LocalDateTime.now());
         siteRepository.save(site);
     }}
-
-    @Override
-    public StatusEnum getStatus(searchengine.model.Site site) {
-        return siteRepository.findByUrl(site.getUrl()).getStatus();
-    }
-
     private IndexingResponse createIndexingResponseOk() {
         IndexingResponseOk indexingResponseOk =  new IndexingResponseOk();
         indexingResponseOk.setResult(true);
@@ -261,10 +227,6 @@ public class IndexingServiceImpl implements IndexingService {
         indexingResponseNotOk.setError(error);
         return indexingResponseNotOk;
     }
-
-
-
-
     private searchengine.model.Site returnModelSite(StatusEnum indexing, String dataTime, String error, String url, String nameSite) {
         searchengine.model.Site site=siteRepository.findByUrl(url);
         if(site==null){
@@ -278,9 +240,9 @@ public class IndexingServiceImpl implements IndexingService {
         return site;
     }
     private String getDataTime() {
-        Calendar cal = Calendar.getInstance();
+        Calendar calendar = Calendar.getInstance();
         DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String result = formatter.format(cal.getTime());
+        String result = formatter.format(calendar.getTime());
         return result;
     }
     public boolean validUrl(String uri) {
@@ -330,7 +292,5 @@ public class IndexingServiceImpl implements IndexingService {
         }
         return document;
     }
-
-
 }
 

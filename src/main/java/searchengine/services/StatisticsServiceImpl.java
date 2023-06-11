@@ -9,8 +9,6 @@ import searchengine.dto.statistics.DetailedStatisticsItem;
 import searchengine.dto.statistics.StatisticsData;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.dto.statistics.TotalStatistics;
-import searchengine.model.Lemma;
-import searchengine.model.Page;
 import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
@@ -20,14 +18,12 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class StatisticsServiceImpl implements StatisticsService {
-
     @Autowired
-    SiteRepository siteRepository;
+    private SiteRepository siteRepository;
     @Autowired
-    PageRepository pageReposytory;
-
+    private PageRepository pageRepository;
     @Autowired
-    LemmaRepository lemmaReposytory;
+    private LemmaRepository lemmaRepository;
     private String myErrorStatus = "-111";
     private final SitesList sites;
 
@@ -60,16 +56,13 @@ public class StatisticsServiceImpl implements StatisticsService {
             try{
                  siteModel = siteModelList.get(0);
             }
-           catch (IndexOutOfBoundsException ibe){
+            catch (IndexOutOfBoundsException ibe){
                 return getErrorBaseTableSite("Таблица  site  еще не заполнена");
             }
-
             if(siteModel==null){continue;}
-            ArrayList<Page> pagesSite = pageReposytory.findAllBySite(siteModel);
-            int pages = pagesSite.size();
+            int pages = pageRepository.countBySite(siteModel);
             if(pages>0){
-                //ArrayList<Lemma> lemma = lemmaReposytory.findAllBySite(siteModel);
-                int numLemms = lemmaReposytory.countBySite(siteModel);
+                int numLemms = lemmaRepository.countBySite(siteModel);
                 setParametrsItem(item, pages, numLemms, siteModel);
                 total.setPages(total.getPages() + pages);
                 total.setLemmas(total.getLemmas() + numLemms);
@@ -93,7 +86,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         DetailedStatisticsItem detailedStatisticsItem = new DetailedStatisticsItem();
         detailedStatisticsItem.setError(myErrorStatus);
         detailedStatisticsItem.setStatus(myErrorStatus);
-        List<DetailedStatisticsItem> error  = new ArrayList<>();
+        List<DetailedStatisticsItem> error = new ArrayList<>();
         error.add(detailedStatisticsItem);
         TotalStatistics totalStatistics = new TotalStatistics();
         StatisticsData statisticsData1 = new StatisticsData();

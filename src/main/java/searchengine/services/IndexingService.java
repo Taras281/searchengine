@@ -23,7 +23,6 @@ public interface IndexingService {
     Set<Page> getPages(Site site, Set<String> links);
 
     void saveError(Site site, String s);
-    StatusEnum getStatus(Site site);
 
     Document getDocument(Site site, String urlPage);
 

@@ -3,7 +3,6 @@ package searchengine.tools;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import searchengine.tools.lemmatization.LemmatizatorReturnCountWord;
 import searchengine.model.Index;
 import searchengine.model.Lemma;
 import searchengine.model.Page;
@@ -25,15 +24,15 @@ public class Searcher {
     private int  limit;
     private long siteId;
     @Autowired
-    private LemmatizatorReturnCountWord lematizator;
+    private LemmatizatorReturnCountWord lemmatizator;
     @Autowired
-    private PageRepository pageReposytory;
+    private PageRepository pageRepository;
     @Autowired
-    private IndexRepository indexReposytory;
+    private IndexRepository indexRepository;
     @Autowired
     private SiteRepository siteRepository;
     @Autowired
-    LemmaRepository lemmaReposytory;
+    private LemmaRepository lemmaRepository;
     @PersistenceContext
     private EntityManager entityManager;
     Set<String> setLemmQuery;
@@ -43,16 +42,16 @@ public class Searcher {
 
     public  ArrayList<Map.Entry<Page, float[]>> vorker(String query){
        siteId = site.equals("-1")?-1:siteRepository.findByUrl(site).getId();
-       setLemmQuery = getQeryLemma(query.trim());
-       List<Lemma> listLemmaaFromBase = getLemmaFromBase(setLemmQuery);
-       if (excessWordQery(setLemmQuery, listLemmaaFromBase)!=null){
-           return excessWordQery(setLemmQuery, listLemmaaFromBase);
+       setLemmQuery = getQueryLemma(query.trim());
+       List<Lemma> listLemmaFromBase = getLemmaFromBase(setLemmQuery);
+       if (excessWordQuery(setLemmQuery, listLemmaFromBase)!=null){
+           return excessWordQuery(setLemmQuery, listLemmaFromBase);
        }
-       if(listLemmaaFromBase.size()<1){
+       if(listLemmaFromBase.size()<1){
            return null;
        }
-       Collections.sort(listLemmaaFromBase, new MyComparator());
-       List<Lemma> reduseList = reduseList(listLemmaaFromBase, 2);
+       Collections.sort(listLemmaFromBase, new MyComparator());
+       List<Lemma> reduseList = reduseList(listLemmaFromBase, 2);
        List<Page>  listPage = getPage(reduseList, siteId);
        if (listPage.size()<1){
            return null;
@@ -62,11 +61,11 @@ public class Searcher {
        return relevantionSorted;
     }
 
-    private ArrayList<Map.Entry<Page, float[]>> excessWordQery(Set<String> setLemmQuery, List<Lemma> listLemmaFromBase) {
+    private ArrayList<Map.Entry<Page, float[]>> excessWordQuery(Set<String> setLemmQuery, List<Lemma> listLemmaFromBase) {
             StringBuilder diferense = new StringBuilder();
-            List<String> lems = listLemmaFromBase.stream().map(lemma -> lemma.getLemma()).collect(Collectors.toList());
+            List<String> lemms = listLemmaFromBase.stream().map(lemma -> lemma.getLemma()).collect(Collectors.toList());
             for(String word: setLemmQuery){
-                if(!lems.contains(word)){
+                if(!lemms.contains(word)){
                     diferense.append(word);
                     diferense.append(", ");
                 }
@@ -101,7 +100,7 @@ public class Searcher {
         List<Integer> rankAbsList = new ArrayList<>();
         HashMap<Page, float[]> result = new HashMap<>();
         for(Page page: listPage){
-            List<Index> indexList = indexReposytory.findAllByPageId(page);
+            List<Index> indexList = indexRepository.findAllByPageId(page);
             int sumRankPage = (int)indexList.stream().filter(index -> listLemma.contains(index.getLemmaId().getLemma()))
                                                      .mapToDouble(index -> index.getRank()).sum();
             rankAbsList.add(sumRankPage);
@@ -115,16 +114,16 @@ public class Searcher {
     }
 
     private List<Page> getPage(List<Lemma> reduseList, long siteId) {
-        List<Index> indexFerstLemma = indexReposytory.findAllByLemmaId(reduseList.get(0));
-        List<Page> listPageFerstLemma=new ArrayList<>();
+        List<Index> indexFirstLemma = indexRepository.findAllByLemmaId(reduseList.get(0));
+        List<Page> listPageFirstLemma=new ArrayList<>();
         if (siteId!=-1){
-            listPageFerstLemma = indexFerstLemma.stream().map(index -> index.getPageId()).
+            listPageFirstLemma = indexFirstLemma.stream().map(index -> index.getPageId()).
                     filter(page -> page.getSite().getId()==siteId).collect(Collectors.toList());
         }
         else{
-            listPageFerstLemma = indexFerstLemma.stream().map(index -> index.getPageId()).collect(Collectors.toList());
+            listPageFirstLemma = indexFirstLemma.stream().map(index -> index.getPageId()).collect(Collectors.toList());
         }
-        List<Index> listAllIndexPages = indexReposytory.findAllByPageIdIn(listPageFerstLemma);
+        List<Index> listAllIndexPages = indexRepository.findAllByPageIdIn(listPageFirstLemma);
         reduseList.remove(0);
         for(Lemma lemma:reduseList){
             List<Page> pagesNextLemma = listAllIndexPages.stream().filter(index->index.getLemmaId().getId()==lemma.getId()).map(l->l.getPageId()).collect(Collectors.toList());
@@ -134,11 +133,11 @@ public class Searcher {
             }
         }
         List<Page> pages =  listAllIndexPages.stream().map(index -> index.getPageId()).collect(Collectors.toList());
-        pages=removeDoblePage(pages);
+        pages= removeDoublePage(pages);
         return  pages;
     }
 
-    private List<Page> removeDoblePage(List<Page> pages) {
+    private List<Page> removeDoublePage(List<Page> pages) {
         List<Page> result = new ArrayList<>();
         for(Page page:pages){
             if(!result.contains(page)){
@@ -153,23 +152,23 @@ public class Searcher {
             return listLemma;
         }
         int n = listLemma.size();
-        int summfreq = listLemma.stream().mapToInt(l->l.getFrequency()).sum();
-        double average = summfreq/n;
-        double summAverageMinusfreqLemma = listLemma.stream().mapToDouble(l-> Math.pow((average - l.getFrequency()),2)).sum();
-        double deviation = Math.pow(summAverageMinusfreqLemma/(n-1), 0.5d);
+        int summFreq = listLemma.stream().mapToInt(l->l.getFrequency()).sum();
+        double average = summFreq/n;
+        double summAverageMinusFreqLemma = listLemma.stream().mapToDouble(l-> Math.pow((average - l.getFrequency()),2)).sum();
+        double deviation = Math.pow(summAverageMinusFreqLemma/(n-1), 0.5d);
         int treshold = (int)(average + deviation*(Double.valueOf(coefLemm)));
         List<Lemma> result = listLemma.stream().filter(lemma -> lemma.getFrequency()<=treshold).collect(Collectors.toList());
         return result;
     }
 
 
-    public Set<String> getQeryLemma(String query){
+    public Set<String> getQueryLemma(String query){
         query=query.replaceAll("ё","е");
-        String[] arr = lematizator.getWordsFromText(query);
+        String[] arr = lemmatizator.getWordsFromText(query);
         Set<String> list= new HashSet<>();
         for(String s: arr){
-            String st = lematizator.luceneMorph.getMorphInfo(s).toString();
-            List<String> normalForms = lematizator.luceneMorph.getNormalForms(s);
+            String st = lemmatizator.luceneMorph.getMorphInfo(s).toString();
+            List<String> normalForms = lemmatizator.luceneMorph.getNormalForms(s);
             String[] array = st.split("\\|", 2);
             if(array[0].substring(1).length()<2){
                 continue;
@@ -180,15 +179,15 @@ public class Searcher {
                list.addAll(normalForms);
             }
         }
-        list = removeDoble(list);
+        list = removeDouble(list);
         return list;
     }
     public List<Lemma> getLemmaFromBase(Set<String> listQueryWord){
-        List<Lemma> ll = lemmaReposytory.findAllByLemmaIn(listQueryWord);
-        return ll;
+        List<Lemma> listLemma = lemmaRepository.findAllByLemmaIn(listQueryWord);
+        return listLemma;
     }
 
-    private Set<String> removeDoble(Set<String> list) {
+    private Set<String> removeDouble(Set<String> list) {
         Set<String> result=new HashSet<>();
         for(String str:list){
             if (!result.contains(str)){

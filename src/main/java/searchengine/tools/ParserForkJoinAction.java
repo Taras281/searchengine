@@ -37,13 +37,12 @@ public class ParserForkJoinAction extends RecursiveAction {
         }else{
             return;
         }
-        List<ParserForkJoinAction> listTask = getTasks(site, urlPage, indexingService, allFindLink, document);
+        List<ParserForkJoinAction> listTask = getTasks(site, indexingService, allFindLink, document);
         for(ParserForkJoinAction task:listTask){
             task.join();
         }
     }
-
-    private List<ParserForkJoinAction> getTasks(Site site, String urlPage, IndexingService indexingService, Set<String> allFindLink, Document document) {
+    private List<ParserForkJoinAction> getTasks(Site site, IndexingService indexingService, Set<String> allFindLink, Document document) {
         Set<String>  url;
         synchronized (allFindLink){
              url = getSetUrl(site, document);
@@ -56,7 +55,6 @@ public class ParserForkJoinAction extends RecursiveAction {
         }
         return listTask;
     }
-
     private Page getNewPage(Site site, String urlPage, Document document) {
         int status = document.connection().response().statusCode();
         site.setStatusTime(LocalDateTime.now());
