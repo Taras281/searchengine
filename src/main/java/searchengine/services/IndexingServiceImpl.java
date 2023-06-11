@@ -6,17 +6,21 @@ import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import searchengine.tools.ParserForkJoin;
 import searchengine.config.*;
 import searchengine.dto.responce.IndexingResponse;
 import searchengine.dto.responce.IndexingResponseNotOk;
 import searchengine.dto.responce.IndexingResponseOk;
-import searchengine.tools.ExceptionNotUrl;
+import searchengine.model.Index;
+import searchengine.model.Lemma;
+import searchengine.repository.IndexRepository;
+import searchengine.repository.LemmaRepository;
 import searchengine.tools.ParserForkJoinAction;
 import searchengine.tools.lemmatization.Lemmatizator;
 import searchengine.model.Page;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
+import searchengine.tools.lemmatization.LemmatizatorReturnCountWord;
+
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -31,6 +35,8 @@ public class IndexingServiceImpl implements IndexingService {
     private final SiteRepository siteRepository;
 
     private final PageRepository pageRepository;
+    private  final LemmaRepository lemmaRepository;
+    private final IndexRepository indexRepository;
 
     private UserAgent userAgent;
 
@@ -39,23 +45,25 @@ public class IndexingServiceImpl implements IndexingService {
     private Logger logger;
     private ForkJoinPool forkJoinPool;
     private ParserForkJoinAction parserForkJoinAction;
-    private ParserForkJoin parserForkJoin;
-    //private ArrayList<ParserForkJoin> listTask;
     private ArrayList<ParserForkJoinAction> listTask;
     private Lemmatizator lemmatizatorServiсe;
     private Label myLabel;
     private Set<Long> siteIdListForCheckStopped;
     private Set<Page> pages;
+    LemmatizatorReturnCountWord lemmatizator;
     public IndexingServiceImpl(SiteRepository siteRepository, PageRepository pageReposytory,
                                UserAgent userAgent, SitesList sitesList, Label label, Logger logger,
-                               Lemmatizator lemmatizatorServiсe) {
+                               LemmatizatorReturnCountWord lemmatizator, LemmaRepository lemmaRepository,
+                               IndexRepository indexRepository) {
         this.siteRepository = siteRepository;
         this.pageRepository = pageReposytory;
         this.sitesList = sitesList;
         this.myLabel = label;
         this.userAgent = userAgent;
         this.logger = logger;
-        this.lemmatizatorServiсe = lemmatizatorServiсe;
+        this.lemmatizator = lemmatizator;
+        this.lemmaRepository = lemmaRepository;
+        this.indexRepository = indexRepository;
     }
 
     public ResponseEntity<IndexingResponse> getStartResponse(){
@@ -92,63 +100,139 @@ public class IndexingServiceImpl implements IndexingService {
         IndexingResponseOk indexingResponseOk = new IndexingResponseOk();
         if(!validUrl(uri)){
             indexingResponseNotOk.setResult(false);
-            indexingResponseNotOk.setError(myLabel.getCheckPage());
+            indexingResponseNotOk.setError("Проверте правильность написания адреса");
             return new ResponseEntity<>(indexingResponseNotOk, HttpStatus.OK);
         }
         if (page==null){
             indexingResponseNotOk.setResult(false);
-            indexingResponseNotOk.setError(myLabel.getThisPageOutSite());
+            indexingResponseNotOk.setError("Данная страница находится за пределами сайтов, указанных в конфигурационном файле");
             return new ResponseEntity<>(indexingResponseNotOk, HttpStatus.OK);
         }
-
         if (uriContainsSiteList(uri)) {
-            /*lemmatizatorServiсe.setRewritePage(true);
-            lemmatizatorServiсe.setPathParsingLink(page);
-            lemmatizatorServiсe.runing();
-            indexingResponseOk.setResult(true);*/
+            savePageBase(page);
+            indexingResponseOk.setResult(true);
             return new ResponseEntity<>(indexingResponseOk, HttpStatus.OK);}
         else{
             indexingResponseNotOk.setError(myLabel.getThisPageOutSite());
             return new ResponseEntity<>(indexingResponseNotOk, HttpStatus.BAD_REQUEST);
         }
     }
-
+    private void startIndexing() {
+        forkJoinPool =  new ForkJoinPool();
+        listTask = new ArrayList<>();
+        siteRepository.deleteAll();
+        for(Site site: sitesList.getSites()) {
+            String url = site.getUrl();
+            searchengine.model.Site siteForBase = returnModelSite(StatusEnum.INDEXING, getDataTime(), "", url, site.getName());
+            searchengine.model.Site siteFromBase=null;
+            synchronized (siteRepository) {
+                siteFromBase = siteRepository.save(siteForBase);
+            }
+            parserForkJoinAction =  new ParserForkJoinAction(siteFromBase,"",this, new HashSet<>(), userAgent);
+            listTask.add(parserForkJoinAction);
+        }
+        for (ParserForkJoinAction pfj: listTask){
+            new Thread(()->{
+                forkJoinPool.invoke(pfj);
+                if(!siteIdListForCheckStopped.contains(pfj.getSite().getId()))
+                {
+                    searchengine.model.Site site = pfj.getSite();
+                    site.setStatus(StatusEnum.INDEXED);
+                    siteRepository.save(site);}
+            }).start();
+        }
+    }
     @Override
     public void addBase(Page newPage) {
         synchronized (pageRepository){
         if(siteIdListForCheckStopped.contains(newPage.getSite().getId())){
            newPage.getSite().setStatus(StatusEnum.FAILED);
         }
-            pages.add(newPage);
-            if(pages.size()>150){
-                saveDataBase(pages);
-            }
-            /*pageRepository.save(newPage);
-            searchengine.model.Site site = newPage.getSite();
-            site.setStatusTime(LocalDateTime.now());
-            siteRepository.save(site);*/
+            savePageBase(newPage);
         }
     }
 
-    private void saveDataBase(Set<Page> pages){
-        //Set<searchengine.model.Site> listSite = getSites(pages);
+    /*private void saveDataBase(Set<Page> pages){
         pageRepository.saveAll(pages);
-        //siteRepository.saveAll(listSite);
         pages.clear();
-    }
-
-    private Set<searchengine.model.Site> getSites(Set<Page> pages) {
-        Set<searchengine.model.Site> sites = new HashSet<>();
-        for(Page page: pages){
-            if(!sites.contains(page.getSite())){
-                searchengine.model.Site site = page.getSite();
-                site.setStatusTime(LocalDateTime.now());
-                sites.add(site);
+    }*/
+    private void savePageBase(Page page){
+        page = pageRepository.save(page);
+        synchronized (lemmaRepository){
+            synchronized (indexRepository){
+                writeBaseLemmsTableIndex(page);
             }
         }
-        return sites;
     }
 
+    public void writeBaseLemmsTableIndex(Page page) {
+        searchengine.model.Site site = page.getSite();
+        String content = page.getContent();
+        HashMap<String, Integer> lemmsFromPage = lemmatizator.getLems(content);
+        List<Lemma> lemmaFromBase = getLemmsFromBase(lemmsFromPage);
+        HashMap<String, Integer> nameLemmaNoYetWriteBase = getLemmsNotYetWriteBase(lemmsFromPage, lemmaFromBase);
+        List<Lemma> lemmaNoYetWriteBase = getListLemmsForSaveBase(nameLemmaNoYetWriteBase, site);
+        lemmaFromBase.addAll(lemmaNoYetWriteBase);
+        List<Index> indexFromBase = getIndex(lemmaFromBase, lemmsFromPage, page);
+
+        lemmaRepository.saveAll(lemmaFromBase);
+        indexRepository.saveAll(indexFromBase);
+    }
+    private List<Index> getIndex(List<Lemma> lemmaFromBase, HashMap<String, Integer> lemsFromPage, Page page) {
+        List<Index> indexList = new ArrayList<>();
+        for(Lemma lemma: lemmaFromBase){
+            int rank = lemsFromPage.get(lemma.getLemma());
+            indexList.add(getIndex(lemma, page, rank));
+        }
+        return  indexList;
+    }
+    private Index getIndex(Lemma lemma, Page page, int rank) {
+        Index index = new Index();
+        index.setRank(rank);
+        index.setLemmaId(lemma);
+        index.setPageId(page);
+        return  index;
+    }
+    private synchronized List<Lemma> getLemmsFromBase(HashMap<String, Integer> lemsFromPage) {
+        Set<String> keys=lemsFromPage.keySet();
+        List<Lemma> list= lemmaRepository.findAllByLemmaIn(keys);
+        for(Lemma lemma:list){
+            lemma.setFrequency(lemma.getFrequency()+1);
+        }
+        list = deleteExcessLemma(list, keys);
+        return  list;
+    }
+    private List<Lemma> deleteExcessLemma(List<Lemma> list, Set<String> keys) {
+        List<Lemma> result = new ArrayList<>();
+        result = list.stream().filter(lemma -> keys.contains(lemma.getLemma())).collect(Collectors.toList());
+        return result;
+    }
+    private List<Lemma> getListLemmsForSaveBase(HashMap<String, Integer> nameLemmaNoYetWriteBase, searchengine.model.Site site) {
+        List<Lemma> result = new ArrayList<>();
+        for(Map.Entry<String, Integer> entryLemma: nameLemmaNoYetWriteBase.entrySet()){
+            result.add(getLemma(entryLemma, site));
+        }
+        return result;
+    }
+    private Lemma getLemma(Map.Entry<String, Integer> entryLemma, searchengine.model.Site site) {
+        Lemma lemma = new Lemma();
+        lemma.setLemma(entryLemma.getKey());
+        lemma.setFrequency(1);
+        lemma.setSite(site);
+        return lemma;
+    }
+    private HashMap<String, Integer> getLemmsNotYetWriteBase(HashMap<String, Integer> lemmsFromPage, List<Lemma> lemmaFromBase) {
+        Set<String> lemms = lemmsFromPage.keySet();
+        HashMap<String, Integer> resultLemms = new HashMap<>();
+        List<String> lemmsFromBase = lemmaFromBase.stream().map(lemma -> lemma.getLemma()).collect(Collectors.toList());
+        for(String lemma: lemms){
+            if(!lemmsFromBase.contains(lemma)){
+                resultLemms.put(lemma, lemmsFromPage.get(lemma));
+            }
+        }
+        return  resultLemms;
+
+    }
     @Override
     public Set<Page> getPages(searchengine.model.Site site, Set<String> links) {
         return pageRepository.findAllBySiteAndPathIn(site, links);
@@ -177,36 +261,9 @@ public class IndexingServiceImpl implements IndexingService {
         indexingResponseNotOk.setError(error);
         return indexingResponseNotOk;
     }
-    private IndexingResponseNotOk createResponseErrorBase() {
-        IndexingResponseNotOk indexingResponseNotOk = new IndexingResponseNotOk();
-        indexingResponseNotOk.setResult(false);
-        indexingResponseNotOk.setError("Ошибка остановки Индексации, но в целом все хорошо, нажмите обновить страницу");
-        return indexingResponseNotOk;
-    }
 
-    private void startIndexing() {
-        forkJoinPool =  new ForkJoinPool();
-        listTask = new ArrayList<>();
-        siteRepository.deleteAll();
-        for(Site site: sitesList.getSites()) {
-            String url = site.getUrl();
-            searchengine.model.Site siteForBase = returnModelSite(StatusEnum.INDEXING, getDataTime(), "", url, site.getName());
-            searchengine.model.Site siteFromBase=null;
-            synchronized (siteRepository) {
-                siteFromBase = siteRepository.save(siteForBase);
-            }
-            parserForkJoinAction =  new ParserForkJoinAction(siteFromBase,"",this, new HashSet<>(), userAgent);
-            listTask.add(parserForkJoinAction);
-        }
-        for (ParserForkJoinAction pfj: listTask){
-            new Thread(()->{
-                forkJoinPool.invoke(pfj);
-                if(!siteIdListForCheckStopped.contains(pfj.getSite().getId()))
-                {pfj.getSite().setStatus(StatusEnum.INDEXED);}
-                saveDataBase(pages);
-            }).start();
-        }
-    }
+
+
 
     private searchengine.model.Site returnModelSite(StatusEnum indexing, String dataTime, String error, String url, String nameSite) {
         searchengine.model.Site site=siteRepository.findByUrl(url);

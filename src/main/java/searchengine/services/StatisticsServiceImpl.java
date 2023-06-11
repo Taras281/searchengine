@@ -68,11 +68,11 @@ public class StatisticsServiceImpl implements StatisticsService {
             ArrayList<Page> pagesSite = pageReposytory.findAllBySite(siteModel);
             int pages = pagesSite.size();
             if(pages>0){
-                ArrayList<Lemma> lemma = lemmaReposytory.findAllBySite(siteModel);
-                int lemmas = lemma.size();
-                setParametrsItem(item, pages, lemmas, siteModel);
+                //ArrayList<Lemma> lemma = lemmaReposytory.findAllBySite(siteModel);
+                int numLemms = lemmaReposytory.countBySite(siteModel);
+                setParametrsItem(item, pages, numLemms, siteModel);
                 total.setPages(total.getPages() + pages);
-                total.setLemmas(total.getLemmas() + lemmas);
+                total.setLemmas(total.getLemmas() + numLemms);
                 detailed.add(item);
             }
         }
