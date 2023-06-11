@@ -26,7 +26,6 @@ public class StatisticsServiceImpl implements StatisticsService {
     private LemmaRepository lemmaRepository;
     private String myErrorStatus = "-111";
     private final SitesList sites;
-
     @Override
     public StatisticsResponse getStatistics() {
         TotalStatistics total = new TotalStatistics();
@@ -39,7 +38,6 @@ public class StatisticsServiceImpl implements StatisticsService {
         response.setResult(true);
         return response;
     }
-
     private StatisticsData getStatisticsData(List<Site> sitesList, TotalStatistics total) {
         StatisticsData statisticsData = new StatisticsData();
         List<DetailedStatisticsItem> detailed = new ArrayList<>();
@@ -73,7 +71,6 @@ public class StatisticsServiceImpl implements StatisticsService {
         statisticsData.setDetailed(detailed);
         return statisticsData;
     }
-
     private void setParametrsItem(DetailedStatisticsItem item, int pages, int lemmas, searchengine.model.Site  siteModel) {
         item.setPages(pages);
         item.setLemmas(lemmas);
@@ -81,7 +78,6 @@ public class StatisticsServiceImpl implements StatisticsService {
         item.setError(siteModel.getLastError());
         item.setStatusTime(siteModel.getStatusTime());
     }
-
     private StatisticsData getErrorBaseTableSite(String myErrorStatus) {
         DetailedStatisticsItem detailedStatisticsItem = new DetailedStatisticsItem();
         detailedStatisticsItem.setError(myErrorStatus);
