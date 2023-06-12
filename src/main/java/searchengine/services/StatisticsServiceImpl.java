@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
+import searchengine.config.StatusEnum;
 import searchengine.dto.statistics.DetailedStatisticsItem;
 import searchengine.dto.statistics.StatisticsData;
 import searchengine.dto.statistics.StatisticsResponse;
@@ -48,14 +49,14 @@ public class StatisticsServiceImpl implements StatisticsService {
             item.setUrl(site.getUrl());
             List<searchengine.model.Site> siteModelList = siteRepository.findByName(sitesList.get(i).getName());
             if(siteModelList.size()>1){
-                return getErrorBaseTableSite("База вернула не однозначный ответ(список сайтов) позовите системного администратора");
+                return getErrorBaseTableSite("База вернула не однозначный ответ(список сайтов) позовите системного администратора", StatusEnum.FAILED);
             }
             searchengine.model.Site siteModel;
             try{
                  siteModel = siteModelList.get(0);
             }
             catch (IndexOutOfBoundsException ibe){
-                return getErrorBaseTableSite("Таблица  site  еще не заполнена");
+                return getErrorBaseTableSite("Таблица  site  еще не заполнена", StatusEnum.FAILED);
             }
             if(siteModel==null){continue;}
             int pages = pageRepository.countBySite(siteModel);
@@ -65,8 +66,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                 total.setPages(total.getPages() + pages);
                 total.setLemmas(total.getLemmas() + numLemms);
                 detailed.add(item);
-            }
-        }
+            }}
         statisticsData.setTotal(total);
         statisticsData.setDetailed(detailed);
         return statisticsData;
@@ -74,14 +74,14 @@ public class StatisticsServiceImpl implements StatisticsService {
     private void setParametrsItem(DetailedStatisticsItem item, int pages, int lemmas, searchengine.model.Site  siteModel) {
         item.setPages(pages);
         item.setLemmas(lemmas);
-        item.setStatus(siteModel.getStatus().name());
+        item.setStatus(siteModel.getStatus());
         item.setError(siteModel.getLastError());
         item.setStatusTime(siteModel.getStatusTime());
     }
-    private StatisticsData getErrorBaseTableSite(String myErrorStatus) {
+    private StatisticsData getErrorBaseTableSite(String myErrorStatus, StatusEnum statusEnum) {
         DetailedStatisticsItem detailedStatisticsItem = new DetailedStatisticsItem();
         detailedStatisticsItem.setError(myErrorStatus);
-        detailedStatisticsItem.setStatus(myErrorStatus);
+        detailedStatisticsItem.setStatus(statusEnum);
         List<DetailedStatisticsItem> error = new ArrayList<>();
         error.add(detailedStatisticsItem);
         TotalStatistics totalStatistics = new TotalStatistics();

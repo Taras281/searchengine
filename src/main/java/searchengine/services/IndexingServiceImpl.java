@@ -1,5 +1,7 @@
 package searchengine.services;
 
+import org.jsoup.Connection;
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -18,11 +20,8 @@ import searchengine.tools.ParserForkJoinAction;
 import searchengine.model.Page;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
-import searchengine.tools.LemmatizatorReturnCountWord;
-
+import searchengine.tools.Lemmatizator;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
@@ -43,10 +42,10 @@ public class IndexingServiceImpl implements IndexingService {
     private ArrayList<ParserForkJoinAction> listTask;
     private Set<Long> siteIdListForCheckStopped;
     private Set<Page> pages;
-    private LemmatizatorReturnCountWord lemmatizator;
+    private Lemmatizator lemmatizator;
     public IndexingServiceImpl(SiteRepository siteRepository, PageRepository pageReposytory,
-                               UserAgent userAgent, SitesList sitesList,  Logger logger,
-                               LemmatizatorReturnCountWord lemmatizator, LemmaRepository lemmaRepository,
+                               UserAgent userAgent, SitesList sitesList, Logger logger,
+                               Lemmatizator lemmatizator, LemmaRepository lemmaRepository,
                                IndexRepository indexRepository) {
         this.siteRepository = siteRepository;
         this.pageRepository = pageReposytory;
@@ -57,7 +56,6 @@ public class IndexingServiceImpl implements IndexingService {
         this.lemmaRepository = lemmaRepository;
         this.indexRepository = indexRepository;
     }
-
     public ResponseEntity<IndexingResponse> getStartResponse(){
         if(siteRepository.findByStatus(StatusEnum.INDEXING).size()<1){
             siteIdListForCheckStopped = new HashSet<>();
@@ -86,15 +84,14 @@ public class IndexingServiceImpl implements IndexingService {
         }
     }
     public ResponseEntity<IndexingResponse> getResponseIndexing(String uri) {
-        Page page = getPageFromUri(uri);
         if(!validUrl(uri)){
             return new ResponseEntity<>(createResponseNotOk("Проверте правильность написания адреса"), HttpStatus.OK);
         }
+        Page page = getPageFromUri(uri);
         if (page==null){
             return new ResponseEntity<>(createResponseNotOk("Данная страница находится за пределами сайтов, указанных в конфигурационном файле"), HttpStatus.OK);
         }
-        if (uriContainsSiteList(uri)) {
-            savePageBase(page);}
+            savePageBase(page);
             return new ResponseEntity<>(createIndexingResponseOk(), HttpStatus.OK);
     }
     private void startIndexing() {
@@ -103,7 +100,7 @@ public class IndexingServiceImpl implements IndexingService {
         siteRepository.deleteAll();
         for(Site site: sitesList.getSites()) {
             String url = site.getUrl();
-            searchengine.model.Site siteForBase = returnModelSite(StatusEnum.INDEXING, getDataTime(), "", url, site.getName());
+            searchengine.model.Site siteForBase = returnModelSite(StatusEnum.INDEXING,  "", url, site.getName());
             searchengine.model.Site siteFromBase=null;
             synchronized (siteRepository) {
             siteFromBase = siteRepository.save(siteForBase);
@@ -133,6 +130,9 @@ public class IndexingServiceImpl implements IndexingService {
     }
     private void savePageBase(Page page){
         page = pageRepository.save(page);
+        if(page.getCode()>299){
+            return;
+        }
         synchronized (lemmaRepository){
             synchronized (indexRepository){
                 writeBaseLemmsTableIndex(page);
@@ -142,7 +142,7 @@ public class IndexingServiceImpl implements IndexingService {
     public void writeBaseLemmsTableIndex(Page page) {
         searchengine.model.Site site = page.getSite();
         String content = page.getContent();
-        HashMap<String, Integer> lemmsFromPage = lemmatizator.getLems(content);
+        HashMap<String, Integer> lemmsFromPage = lemmatizator.getLemms(content);
         List<Lemma> lemmaFromBase = getLemmsFromBase(lemmsFromPage);
         HashMap<String, Integer> nameLemmaNotYetWriteBase = getLemmsNotYetWriteBase(lemmsFromPage, lemmaFromBase);
         List<Lemma> lemmaNotYetWriteBase = getListLemmsForSaveBase(nameLemmaNotYetWriteBase, site);
@@ -227,7 +227,7 @@ public class IndexingServiceImpl implements IndexingService {
         indexingResponseNotOk.setError(error);
         return indexingResponseNotOk;
     }
-    private searchengine.model.Site returnModelSite(StatusEnum indexing, String dataTime, String error, String url, String nameSite) {
+    private searchengine.model.Site returnModelSite(StatusEnum indexing, String error, String url, String nameSite) {
         searchengine.model.Site site=siteRepository.findByUrl(url);
         if(site==null){
             site = new searchengine.model.Site();
@@ -239,14 +239,10 @@ public class IndexingServiceImpl implements IndexingService {
         }
         return site;
     }
-    private String getDataTime() {
-        Calendar calendar = Calendar.getInstance();
-        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String result = formatter.format(calendar.getTime());
-        return result;
-    }
-    public boolean validUrl(String uri) {
-        return  uri.matches("^(https?)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
+    public  boolean validUrl(String uri) {
+        return  //(uri.matches("^(https?)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]")) &&
+                !uri.matches(".*((\\.jpg)|(\\.jpeg)|(\\.pdf)|(\\.PDF)|(\\.JPEG)|(\\.JPG)|(\\.png)|(\\.PNG)" +
+                "|(\\.mp3)|(\\.MP3)|(\\.mp4)|(\\.MP4)|(\\.AVI)|(\\.avi)|(\\.wav)|(\\.WAV)|((/.*#.*)$))");
     }
     private Page getPageFromUri(String uri) {
         ArrayList<String> listUri = (ArrayList<String>) sitesList.getSites().stream().map(s->s.getUrl()).collect(Collectors.toList());
@@ -265,13 +261,9 @@ public class IndexingServiceImpl implements IndexingService {
                 int statusResponse = document.connection().response().statusCode();
                 p =  new Page(1, s, urlForPath, statusResponse, document.html());
                 p = pageRepository.save(p);
-
             }
         }
         return p;
-    }
-    private boolean uriContainsSiteList(String uri) {
-        return sitesList.getSites().stream().map(l-> uri.contains(l.getUrl())).anyMatch(b->b==true);
     }
     public String remoovePrefix(searchengine.model.Site site, String url){
         String result=url.replaceAll(site.getUrl(),"");
@@ -284,12 +276,15 @@ public class IndexingServiceImpl implements IndexingService {
                     .userAgent(userAgent.getUserAgent())
                     .referrer(userAgent.getReferrer())
                     .get();
-        } catch (IOException e) {
-            synchronized (urlPage){
-                addBase(new Page(1, site, urlPage, 522,""));
-                saveError(site, "Error pars url code = "+ 522 + " " + site.getUrl().concat(urlPage) + "  " +e.toString());
-            }
         }
+        catch (HttpStatusException httpStatusException){
+            addBase(new Page(1, site, urlPage, httpStatusException.getStatusCode(),""));
+            saveError(site, httpStatusException.getMessage());
+        }
+        catch (IOException e) {
+            addBase(new Page(1, site, urlPage, 418,""));
+            saveError(site, e.toString());
+            }
         return document;
     }
 }

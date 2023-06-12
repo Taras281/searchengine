@@ -25,7 +25,7 @@ public class ParserForkJoinAction extends RecursiveAction {
 
     @Override
     protected void compute() {
-        if(site.getStatus().equals(StatusEnum.FAILED)){
+        if( site.getStatus().equals(StatusEnum.FAILED)){
             site.setLastError("Индексация остановлена пользователем");
             site.setStatusTime(LocalDateTime.now());
             indexingService.addBase(new Page(1,site, urlPage, 418, ""));
@@ -67,7 +67,6 @@ public class ParserForkJoinAction extends RecursiveAction {
                 .filter(l->!allFindLink.contains(l)).collect(Collectors.toSet());
         Set<String> linksForCheckBase = links.stream().map(l->indexingService.remoovePrefix(site,l)).collect(Collectors.toSet());
         List<String> urlPagesFromBase = indexingService.getPages(site, linksForCheckBase).stream().map(page -> page.getPath()).collect(Collectors.toList());
-
         allFindLink.addAll(links);
         links = links.stream().map(l->indexingService.remoovePrefix(site,l)).filter(l->!urlPagesFromBase.contains(l)).collect(Collectors.toSet());
         Set<String> res = links.stream()
@@ -91,6 +90,15 @@ public class ParserForkJoinAction extends RecursiveAction {
 
     public  Site getSite(){
         return site;
+    }
+    private String isSlash(String url){
+        if(!url.startsWith("/")){
+            StringBuffer sb = new StringBuffer();
+            sb.append("/");
+            sb.append(url);
+            url=sb.toString();
+        }
+        return url;
     }
 
 }

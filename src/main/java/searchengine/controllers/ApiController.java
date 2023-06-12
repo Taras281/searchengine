@@ -18,14 +18,12 @@ public class ApiController {
     private IndexingService indexingServise;
     private StatisticsService statisticsService;
 
-
     @GetMapping("/statistics")
     public ResponseEntity<StatisticsResponse> statistics() {
         return ResponseEntity.ok(statisticsService.getStatistics());
     }
     @GetMapping("/startIndexing")
     public ResponseEntity<IndexingResponse> indexing() {
-
         return indexingServise.getStartResponse();
     }
 

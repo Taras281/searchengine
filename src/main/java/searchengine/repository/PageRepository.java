@@ -11,4 +11,6 @@ public interface PageRepository extends JpaRepository<Page, Long> {
     Page findByPathAndSite(String path, Site site);
     Set<Page> findAllBySiteAndPathIn(Site site, Set<String> urlSet);
     int countBySite(Site siteModel);
+
+
 }

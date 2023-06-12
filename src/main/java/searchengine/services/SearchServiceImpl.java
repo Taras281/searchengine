@@ -15,7 +15,7 @@ import searchengine.dto.search.SearchResponce;
 import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repository.SiteRepository;
-import searchengine.tools.LemmatizatorReturnCountWord;
+import searchengine.tools.Lemmatizator;
 import searchengine.tools.Searcher;
 
 import java.util.*;
@@ -30,7 +30,7 @@ public class SearchServiceImpl implements SearchService {
     @Autowired
     private Searcher searcher;
     @Autowired
-    private LemmatizatorReturnCountWord lemmatizator;
+    private Lemmatizator lemmatizator;
     @Autowired
     SiteRepository siteRepository;
     @Autowired
@@ -45,7 +45,7 @@ public class SearchServiceImpl implements SearchService {
         return  new ResponseEntity(responce, HttpStatus.OK);
     }
     public SearchResponce getStatistics() {
-        query = query.replaceAll("[^а-яА-ЯёЁ ]", "");
+        query = query.replaceAll("[^а-яА-ЯёЁ ]", "").trim();
         if(query.equals("")){
             return getSimpleResponce(false, getEmptyData(), "Задан пустой поисковый запрос, или запрос содержит латинские или просто символы");
         }
@@ -145,8 +145,7 @@ public class SearchServiceImpl implements SearchService {
             }
             else{
                 sentence.append(word+" ");
-            }
-            }
+            }}
         String result = sentence.toString();
         return result;
 
@@ -156,8 +155,7 @@ public class SearchServiceImpl implements SearchService {
         for(String queryLemma: queryByLemm){
             if(lemms.contains(queryLemma)){
                 return true;
-            }
-        }
+            }}
         return false;
     }
     private ArrayList<String> getSentence(String content) {
@@ -166,9 +164,7 @@ public class SearchServiceImpl implements SearchService {
         text=text.replaceAll("ё", "е");
         ArrayList<String> sentences =new ArrayList<>(Arrays.asList(text.split("[.!?]\\s*")));
         return sentences;
-
     }
-
     private ArrayList<ArrayList<String>> getSentenceByWord(ArrayList<String> sentences) {
         ArrayList<ArrayList<String>> sentenceByWord = new ArrayList<>();
         for(int i=0;i<sentences.size();i++){
@@ -236,5 +232,4 @@ public class SearchServiceImpl implements SearchService {
         }
         return title;
     }
-
 }

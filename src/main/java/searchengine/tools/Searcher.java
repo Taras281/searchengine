@@ -24,17 +24,13 @@ public class Searcher {
     private int  limit;
     private long siteId;
     @Autowired
-    private LemmatizatorReturnCountWord lemmatizator;
-    @Autowired
-    private PageRepository pageRepository;
+    private Lemmatizator lemmatizator;
     @Autowired
     private IndexRepository indexRepository;
     @Autowired
     private SiteRepository siteRepository;
     @Autowired
     private LemmaRepository lemmaRepository;
-    @PersistenceContext
-    private EntityManager entityManager;
     Set<String> setLemmQuery;
     public Set<String> getSetLemmQuery() {
         return setLemmQuery;
@@ -83,8 +79,6 @@ public class Searcher {
         }
         else return null;
     }
-
-
     private ArrayList<Map.Entry<Page, float[]>> sort(HashMap<Page, float[]> relevantion) {
         ArrayList<Map.Entry<Page, float[]>> result = new ArrayList<>();
         while (0<relevantion.size()){
@@ -111,8 +105,8 @@ public class Searcher {
             result.put(listPage.get(i), new float[]{rankAbsList.get(i), rankRelativ});
         }
     return  result;
-    }
 
+    }
     private List<Page> getPage(List<Lemma> reduseList, long siteId) {
         List<Index> indexFirstLemma = indexRepository.findAllByLemmaId(reduseList.get(0));
         List<Page> listPageFirstLemma=new ArrayList<>();
@@ -160,7 +154,6 @@ public class Searcher {
         List<Lemma> result = listLemma.stream().filter(lemma -> lemma.getFrequency()<=treshold).collect(Collectors.toList());
         return result;
     }
-
 
     public Set<String> getQueryLemma(String query){
         query=query.replaceAll("ё","е");

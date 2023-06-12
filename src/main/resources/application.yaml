@@ -31,10 +31,12 @@ indexing-settings:
   sites:
     - url: https://www.svetlovka.ru
       name: Librory
-    - url: https://et-cetera.ru/mobile
-      name: Theatre
-    #- url: https://www.playback.ru
-      #name: PlayBack.Ru
+       - url: https://et-cetera.ru/mobile
+         name: Theatre
+       - url: https://www.playback.ru
+         name: PlayBack.Ru
+       - url: https://dombulgakova.ru
+        name: dombulgakova
 
 ---
 indexing-agent:
