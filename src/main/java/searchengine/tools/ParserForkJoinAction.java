@@ -60,19 +60,22 @@ public class ParserForkJoinAction extends RecursiveAction {
         site.setStatusTime(LocalDateTime.now());
         return  new Page(1, site, urlPage, status, document.html());
     }
+
+
     private Set getSetUrl(Site site, Document document) {
         Elements elementLinks = document.select("a[href]");
         Set<String> links= elementLinks.stream().map(link-> link.attr("abs:href"))
                 .filter(l->l.contains(site.getUrl()))
-                .filter(l->!allFindLink.contains(l)).collect(Collectors.toSet());
-        Set<String> linksForCheckBase = links.stream().map(l->indexingService.remoovePrefix(site,l)).collect(Collectors.toSet());
-        List<String> urlPagesFromBase = indexingService.getPages(site, linksForCheckBase).stream().map(page -> page.getPath()).collect(Collectors.toList());
-        allFindLink.addAll(links);
-        links = links.stream().map(l->indexingService.remoovePrefix(site,l)).filter(l->!urlPagesFromBase.contains(l)).collect(Collectors.toSet());
-        Set<String> res = links.stream()
-                .filter(link->(indexingService.validUrl(site.getUrl().concat(link))
-                        && dontCrazyYear(link))).collect(Collectors.toSet());
-        return res;
+                .filter(l->indexingService.validUrl(l))
+                .filter(l->!allFindLink.contains(l))
+                .filter(this::dontCrazyYear)
+                .map(l->indexingService.remoovePrefix(site,l))
+                .map(this::insertSlash)
+                .collect(Collectors.toSet());
+        List<String> urlPagesFromBase = indexingService.getPages(site, links).stream().map(Page::getPath).toList();
+        allFindLink.addAll(links.stream().map(link->site.getUrl().concat(link)).collect(Collectors.toSet()));
+        links = links.stream().filter(l->!urlPagesFromBase.contains(l)).collect(Collectors.toSet());
+        return links;
     }
     public boolean dontCrazyYear(String link) {
         String regex = ".+\\?.+year=\\d{4}.*";
@@ -91,14 +94,9 @@ public class ParserForkJoinAction extends RecursiveAction {
     public  Site getSite(){
         return site;
     }
-    private String isSlash(String url){
-        if(!url.startsWith("/")){
-            StringBuffer sb = new StringBuffer();
-            sb.append("/");
-            sb.append(url);
-            url=sb.toString();
-        }
-        return url;
+    private String insertSlash(String path){
+       String res = path.startsWith("/")?path:"/".concat(path);
+       return res;
     }
 
 }

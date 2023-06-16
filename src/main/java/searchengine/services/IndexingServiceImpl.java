@@ -1,6 +1,5 @@
 package searchengine.services;
 
-import org.jsoup.Connection;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -76,6 +75,8 @@ public class IndexingServiceImpl implements IndexingService {
                     siteIdListForCheckStopped.add(site.getId());
                 }
                 siteRepository.saveAll(sites);
+                while (!(forkJoinPool.getActiveThreadCount()<=0)) {
+                }
             }
             return new ResponseEntity<>(createIndexingResponseOk(), HttpStatus.OK);
         }
@@ -97,7 +98,7 @@ public class IndexingServiceImpl implements IndexingService {
     private void startIndexing() {
         forkJoinPool =  new ForkJoinPool();
         listTask = new ArrayList<>();
-        siteRepository.deleteAll();
+        deleteAll();
         for(Site site: sitesList.getSites()) {
             String url = site.getUrl();
             searchengine.model.Site siteForBase = returnModelSite(StatusEnum.INDEXING,  "", url, site.getName());
@@ -118,6 +119,10 @@ public class IndexingServiceImpl implements IndexingService {
                     siteRepository.save(site);}
             }).start();
         }
+    }
+
+    private void deleteAll(){
+        siteRepository.deleteAll();
     }
     @Override
     public void addBase(Page newPage) {
@@ -197,7 +202,7 @@ public class IndexingServiceImpl implements IndexingService {
     private HashMap<String, Integer> getLemmsNotYetWriteBase(HashMap<String, Integer> lemmsFromPage, List<Lemma> lemmaFromBase) {
         Set<String> lemms = lemmsFromPage.keySet();
         HashMap<String, Integer> resultLemms = new HashMap<>();
-        List<String> lemmsFromBase = lemmaFromBase.stream().map(lemma -> lemma.getLemma()).collect(Collectors.toList());
+        List<String> lemmsFromBase = lemmaFromBase.stream().map(Lemma::getLemma).collect(Collectors.toList());
         for(String lemma: lemms){
             if(!lemmsFromBase.contains(lemma)){
                 resultLemms.put(lemma, lemmsFromPage.get(lemma));
@@ -240,12 +245,11 @@ public class IndexingServiceImpl implements IndexingService {
         return site;
     }
     public  boolean validUrl(String uri) {
-        return  //(uri.matches("^(https?)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]")) &&
-                !uri.matches(".*((\\.jpg)|(\\.jpeg)|(\\.pdf)|(\\.PDF)|(\\.JPEG)|(\\.JPG)|(\\.png)|(\\.PNG)" +
-                "|(\\.mp3)|(\\.MP3)|(\\.mp4)|(\\.MP4)|(\\.AVI)|(\\.avi)|(\\.wav)|(\\.WAV)|((/.*#.*)$))");
+        return  !uri.matches(".*((\\.jpg)|(\\.jpeg)|(\\.pdf)|(\\.PDF)|(\\.JPEG)|(\\.JPG)|(\\.doc)|(\\.xml)" +
+                                   "|(\\.mp3)|(\\.MP3)|(\\.mp4)|(\\.MP4)|(\\.AVI)|(\\.avi)|(\\.wav)|(\\.WAV)|((/.*#.*)$))");
     }
     private Page getPageFromUri(String uri) {
-        ArrayList<String> listUri = (ArrayList<String>) sitesList.getSites().stream().map(s->s.getUrl()).collect(Collectors.toList());
+        ArrayList<String> listUri = (ArrayList<String>) sitesList.getSites().stream().map(Site::getUrl).toList();
         Page p=null;
         searchengine.model.Site s;
         for(String site: listUri){
@@ -277,14 +281,19 @@ public class IndexingServiceImpl implements IndexingService {
                     .referrer(userAgent.getReferrer())
                     .get();
         }
-        catch (HttpStatusException httpStatusException){
-            addBase(new Page(1, site, urlPage, httpStatusException.getStatusCode(),""));
-            saveError(site, httpStatusException.getMessage());
-        }
-        catch (IOException e) {
-            addBase(new Page(1, site, urlPage, 418,""));
-            saveError(site, e.toString());
+        catch (IOException exception){
+            try{
+                document = Jsoup.connect(site.getUrl().concat(urlPage)).get();
             }
+            catch (HttpStatusException hse){
+            addBase(new Page(1, site, urlPage, hse.getStatusCode(),""));
+            saveError(site, hse.getMessage());}
+            catch (IOException e) {
+            addBase(new Page(1, site, urlPage, 418,""));
+            saveError(site, "eror parse code 418 url " + site.getUrl().concat(urlPage) + "  " + e.toString());
+            }
+        }
+
         return document;
     }
 }

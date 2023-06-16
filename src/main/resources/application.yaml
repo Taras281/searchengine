@@ -17,9 +17,9 @@ spring:
    ddl-auto: create-update
    #show-sql: true
    #jdbc:
-   #batch_size: 20
-   #order_insert: true
-   #order_updates: true
+   batch_size: 20
+   order_insert: true
+   order_updates: true
 
 
   generate-ddl: true
@@ -29,14 +29,14 @@ spring:
 
 indexing-settings:
   sites:
-    - url: https://www.svetlovka.ru
-      name: Librory
+       - url: https://www.svetlovka.ru
+         name: Librory
        - url: https://et-cetera.ru/mobile
          name: Theatre
        - url: https://www.playback.ru
          name: PlayBack.Ru
-       - url: https://dombulgakova.ru
-        name: dombulgakova
+    #- url: https://dombulgakova.ru
+         #  name: dombulgakova
 
 ---
 indexing-agent:

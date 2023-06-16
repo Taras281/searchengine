@@ -22,12 +22,12 @@ public class Index {
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "page_id")
+    @JoinColumn(name = "page_id", nullable = true)
     private Page pageId;
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "lemma_id")
+    @JoinColumn(name = "lemma_id", nullable = true)
     private Lemma lemmaId;
 
     @Column(name = "`rank`", columnDefinition = "float", nullable = false)
