@@ -112,14 +112,30 @@ public class SearchServiceImpl implements SearchService {
         ArrayList<String> sentences = getSentence(content);
         ArrayList<ArrayList<String>> sentenceByWord = getSentenceByWord(sentences);
         ArrayList<ArrayList<List<String>>> sentenceByLemm = getSentenceByLemm(sentenceByWord);
-        HashMap<Integer, String> numberConcidienceSentenceQuery = getConcidient(queryLemms, sentences, sentenceByLemm);
-        int maxFreq = numberConcidienceSentenceQuery.keySet().stream().max(Integer::compareTo).get();
-        String resultSentence = numberConcidienceSentenceQuery.get(maxFreq);
-        String result = getSelection(resultSentence, query);
+        HashMap<String, Integer> numberConcidienceSentenceQuery = getConcidient(queryLemms, sentences, sentenceByLemm);
+        String resultSentence = getSentenceByMaxConcidience(numberConcidienceSentenceQuery);
+        String result = getSelection(resultSentence, queryLemms);
         return  result;
     }
 
-    private String getSelection(String resultSentence, String query) {
+    private String getSelection(String resultSentence, List<String> query){
+        List<String> sentenceByWord = getWords(resultSentence);
+        List<List<String>> sentenceByLemma = getLemsFromText(sentenceByWord);
+        StringBuffer sb = new StringBuffer();
+        for(int wordId=0; wordId<sentenceByLemma.size();wordId++){
+                if(query.containsAll(sentenceByLemma.get(wordId))){
+                    sb.append("<b>");
+                    sb.append(sentenceByWord.get(wordId));
+                    sb.append("</b>");
+                }
+                else{
+                    sb.append(sentenceByWord.get(wordId));
+                }
+                sb.append(" ");
+        }
+        return sb.toString();
+    }
+/*    private String getSelection(String resultSentence, String query) {
         ArrayList<String> sentenceByWord = getWords(resultSentence);
         Set<String> queryByLemm= searcher.getSetLemmQuery();
         StringBuilder sentence = new StringBuilder();
@@ -149,7 +165,7 @@ public class SearchServiceImpl implements SearchService {
         String result = sentence.toString();
         return result;
 
-    }
+    }*/
 
     private boolean isContain(Set<String> queryByLemm, List<String> lemms) {
         for(String queryLemma: queryByLemm){
@@ -184,22 +200,31 @@ public class SearchServiceImpl implements SearchService {
         return sentenceByLemm;
     }
 
-    private HashMap<Integer, String> getConcidient(List<String> queryLemms, ArrayList<String> sentences, ArrayList<ArrayList<List<String>>> sentenceByLemm) {
-        HashMap<Integer, String> numberConcidienceSentenceQuery = new HashMap<>();
-    for(int numSentence=0; numSentence<sentenceByLemm.size(); numSentence++){
-        int count = 0;
-        for( int numWord=0; numWord<sentenceByLemm.get(numSentence).size(); numWord++){
-            for(int numLemm=0; numLemm<sentenceByLemm.get(numSentence).get(numWord).size();numLemm++){
-                if(queryLemms.contains(sentenceByLemm.get(numSentence).get(numWord).get(numLemm))){
-                    ++count;
-                }
+    private HashMap<String, Integer> getConcidient(List<String> queryLemms, ArrayList<String> sentences, ArrayList<ArrayList<List<String>>> sentenceByLemm) {
+        HashMap<String, Integer> numberConcidienceSentenceQuery = new HashMap<>();
+        for(int numSentence=0; numSentence<sentenceByLemm.size(); numSentence++){
+            int count = 0;
+            for( int numWord=0; numWord<sentenceByLemm.get(numSentence).size(); numWord++){
+                count += (int) sentenceByLemm.get(numSentence).get(numWord).stream().filter(lemma->queryLemms.contains(lemma)).count();
             }
+            numberConcidienceSentenceQuery.put( sentences.get(numSentence), count);
         }
-        numberConcidienceSentenceQuery.put(count, sentences.get(numSentence));
+        return numberConcidienceSentenceQuery;
     }
-    return numberConcidienceSentenceQuery;
+
+    private String getSentenceByMaxConcidience(HashMap<String, Integer> numberConcidienceSentenceQuery){
+        int maxFreq=0;
+        String result="";
+        for(Map.Entry<String, Integer> sentence: numberConcidienceSentenceQuery.entrySet()){
+           if(sentence.getValue()>maxFreq){
+               maxFreq = sentence.getValue();
+               result=sentence.getKey();
+           }
+        }
+        return  result;
     }
-    private ArrayList<List<String>> getLemsFromText(ArrayList<String> arrWords) {
+
+    private ArrayList<List<String>> getLemsFromText(List<String> arrWords) {
         ArrayList<List<String>> lemmsFromText = new ArrayList<>();
         for(int i=0;i<arrWords.size();i++){
             String word = arrWords.get(i);
