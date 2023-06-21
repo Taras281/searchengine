@@ -45,7 +45,7 @@ public class SearchServiceImpl implements SearchService {
         return  new ResponseEntity(responce, HttpStatus.OK);
     }
     public SearchResponce getStatistics() {
-        query = query.replaceAll("[^а-яА-ЯёЁ ]", "").trim();
+        query = query.replaceAll("[^а-яА-ЯёЁ ]", " ").trim();
         if(query.equals("")){
             return getSimpleResponce(false, getEmptyData(), "Задан пустой поисковый запрос, или запрос содержит латинские или просто символы");
         }
@@ -85,13 +85,18 @@ public class SearchServiceImpl implements SearchService {
             Optional<Site> site = siteRepository.findById(resultSearch.get(i).getKey().getSite().getId());
             item.setSite(site.get().getUrl());
             item.setSiteName(site.get().getName());
-            item.setSnippet(getSmallSnipet(resultSearch.get(i).getKey().getContent()));
+            item.setSnippet(getSmallSnipet(getText(resultSearch.get(i).getKey().getContent())));
             detailedStatisticsSearches[i-start]=item;
         }
         responce.setResult(true);
         responce.setCount(countPage);
         responce.setData(detailedStatisticsSearches);
         return responce;
+    }
+
+    private String getText(String content) {
+        String result = Jsoup.parse(content).body().text();
+        return result;
     }
 
     private DetailedStatisticsSearch[] getEmptyData() {
@@ -114,8 +119,34 @@ public class SearchServiceImpl implements SearchService {
         ArrayList<ArrayList<List<String>>> sentenceByLemm = getSentenceByLemm(sentenceByWord);
         HashMap<String, Integer> numberConcidienceSentenceQuery = getConcidient(queryLemms, sentences, sentenceByLemm);
         String resultSentence = getSentenceByMaxConcidience(numberConcidienceSentenceQuery);
+        resultSentence = reduseSentence(resultSentence, queryLemms);
         String result = getSelection(resultSentence, queryLemms);
         return  result;
+    }
+
+    private String reduseSentence(String resultSentence, List<String> queryLemm) {
+        List<String> sentenceByWord=getWords(resultSentence);
+        List<List<String>> sentenceByLemm = getLemsFromText(sentenceByWord);
+        if(sentenceByWord.size()<31){
+            return resultSentence;
+        }
+        int start=-14;
+        int end=30;
+        for(List<String> lemms: sentenceByLemm){
+            start++;
+            end++;
+            if(isAnyContains(lemms, queryLemm)) {
+                break;
+            }
+        }
+        start = start>0?start:0;
+        end = end<sentenceByWord.size()?end:sentenceByWord.size();
+        StringBuffer stringBuffer = new StringBuffer();
+        for(int i=start; i<end;i++){
+            stringBuffer.append(sentenceByWord.get(i));
+            stringBuffer.append(" ");
+        }
+        return stringBuffer.toString();
     }
 
     private String getSelection(String resultSentence, List<String> query){
@@ -123,7 +154,7 @@ public class SearchServiceImpl implements SearchService {
         List<List<String>> sentenceByLemma = getLemsFromText(sentenceByWord);
         StringBuffer sb = new StringBuffer();
         for(int wordId=0; wordId<sentenceByLemma.size();wordId++){
-                if(query.containsAll(sentenceByLemma.get(wordId))){
+                if(isAnyContains(sentenceByLemma.get(wordId), query)){
                     sb.append("<b>");
                     sb.append(sentenceByWord.get(wordId));
                     sb.append("</b>");
@@ -135,45 +166,14 @@ public class SearchServiceImpl implements SearchService {
         }
         return sb.toString();
     }
-/*    private String getSelection(String resultSentence, String query) {
-        ArrayList<String> sentenceByWord = getWords(resultSentence);
-        Set<String> queryByLemm= searcher.getSetLemmQuery();
-        StringBuilder sentence = new StringBuilder();
-        int start = 0;
-        int counter= 0;
-        int lengthSnipet = 30;
-        for(String word: sentenceByWord){
-            counter++;
-            if(start!=0&&counter>lengthSnipet){
-                break;
-            }
-            String smalLeterWord = word.replaceAll("[^а-яА-ЯёЁ ]", " ").toLowerCase().trim();
-            List<String> lemms = lemmatizator.getlemss(new String[]{smalLeterWord});
-            if(isContain(queryByLemm,lemms)){
-                if(counter>lengthSnipet/2&&start==0){
-                    counter=0;
-                    sentence = new StringBuilder();
-                }
-                start=counter;
-                sentence.append("<b>");
-                sentence.append(word);
-                sentence.append("</b> ");
-            }
-            else{
-                sentence.append(word+" ");
-            }}
-        String result = sentence.toString();
-        return result;
 
-    }*/
-
-    private boolean isContain(Set<String> queryByLemm, List<String> lemms) {
-        for(String queryLemma: queryByLemm){
-            if(lemms.contains(queryLemma)){
-                return true;
-            }}
+    private boolean isAnyContains(List<String> sentence, List<String> query) {
+        for(String s:sentence){
+            return query.stream().anyMatch(lemma->lemma.equals(s));
+        }
         return false;
     }
+
     private ArrayList<String> getSentence(String content) {
         String text=Jsoup.parse(content).text();
         text=text.replaceAll("Ё", "Е");
@@ -257,4 +257,6 @@ public class SearchServiceImpl implements SearchService {
         }
         return title;
     }
+
+
 }
