@@ -57,7 +57,7 @@ public class SearchServiceImpl implements SearchService {
             return getSimpleResponce(false, getEmptyData(), "результаты не найдены" );
         }
         if(resultSearch.get(0).getKey().getCode()==-1){
-            return getSimpleResponce(false, getEmptyData(), "Слова - \"" +resultSearch.get(0).getKey().getPath() + "\" не найдены в базе, уберите их пожалуйста");
+            return getSimpleResponce(false, getEmptyData(), "Слова образованные от- \"" +resultSearch.get(0).getKey().getPath() + "\" не найдены в базе, уберите их пожалуйста");
         }
         SearchResponce responce = getResponse(resultSearch);
         return responce;
@@ -125,22 +125,36 @@ public class SearchServiceImpl implements SearchService {
     }
 
     private String reduseSentence(String resultSentence, List<String> queryLemm) {
-        List<String> sentenceByWord=getWords(resultSentence);
-        List<List<String>> sentenceByLemm = getLemsFromText(sentenceByWord);
-        if(sentenceByWord.size()<31){
+        List<String> sentenceByWord = getWords(resultSentence);
+        if(sentenceByWord.size() < 31){
             return resultSentence;
         }
-        int start=-14;
-        int end=30;
+        return cutOffSentence(sentenceByWord, queryLemm);
+    }
+
+    private String cutOffSentence(List<String> sentenceByWord, List<String> queryLemm) {
+        List<List<String>> sentenceByLemm = getLemsFromText(sentenceByWord);
+        int start;
+        int end;
+        int indexConcat = -1;
+        int lengthSnippet = 30;
         for(List<String> lemms: sentenceByLemm){
-            start++;
-            end++;
+            indexConcat++;
             if(isAnyContains(lemms, queryLemm)) {
                 break;
             }
         }
-        start = start>0?start:0;
-        end = end<sentenceByWord.size()?end:sentenceByWord.size();
+        if(indexConcat <= 30){
+            start = 0;
+            end = 30;
+        } else if (indexConcat>=sentenceByWord.size()-lengthSnippet) {
+            start = sentenceByWord.size()-lengthSnippet;
+            end = sentenceByWord.size();
+        }
+        else{
+            start = indexConcat-15;
+            end = indexConcat+15;
+        }
         StringBuffer stringBuffer = new StringBuffer();
         for(int i=start; i<end;i++){
             stringBuffer.append(sentenceByWord.get(i));
