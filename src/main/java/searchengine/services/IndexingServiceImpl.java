@@ -8,9 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import searchengine.config.*;
-import searchengine.dto.responce.IndexingResponse;
-import searchengine.dto.responce.IndexingResponseNotOk;
-import searchengine.dto.responce.IndexingResponseOk;
+import searchengine.dto.response.IndexingResponse;
+import searchengine.dto.response.IndexingResponseNotOk;
+import searchengine.dto.response.IndexingResponseOk;
 import searchengine.model.Index;
 import searchengine.model.Lemma;
 import searchengine.repository.IndexRepository;
@@ -147,7 +147,7 @@ public class IndexingServiceImpl implements IndexingService {
     public void writeBaseLemmsTableIndex(Page page) {
         searchengine.model.Site site = page.getSite();
         String content = page.getContent();
-        HashMap<String, Integer> lemmsFromPage = lemmatizator.getLemms(content);
+        HashMap<String, Integer> lemmsFromPage = lemmatizator.getLemmsInPage(content);
         List<Lemma> lemmaFromBase = getLemmsFromBase(lemmsFromPage);
         HashMap<String, Integer> nameLemmaNotYetWriteBase = getLemmsNotYetWriteBase(lemmsFromPage, lemmaFromBase);
         List<Lemma> lemmaNotYetWriteBase = getListLemmsForSaveBase(nameLemmaNotYetWriteBase, site);
@@ -249,7 +249,7 @@ public class IndexingServiceImpl implements IndexingService {
                                    "|(\\.mp3)|(\\.MP3)|(\\.mp4)|(\\.MP4)|(\\.AVI)|(\\.avi)|(\\.wav)|(\\.WAV)|((/.*#.*)$))");
     }
     private Page getPageFromUri(String uri) {
-        ArrayList<String> listUri = (ArrayList<String>) sitesList.getSites().stream().map(Site::getUrl).toList();
+        ArrayList<String> listUri = (ArrayList<String>) sitesList.getSites().stream().map(site -> site.getUrl()).collect(Collectors.toList());
         Page p=null;
         searchengine.model.Site s;
         for(String site: listUri){

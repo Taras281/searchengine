@@ -2,13 +2,12 @@ package searchengine.services;
 
 import org.jsoup.nodes.Document;
 import org.springframework.http.ResponseEntity;
-import searchengine.config.StatusEnum;
-import searchengine.dto.responce.IndexingResponse;
+import searchengine.dto.response.IndexingResponse;
 import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
-import java.util.List;
+
 import java.util.Set;
 
 public interface IndexingService {

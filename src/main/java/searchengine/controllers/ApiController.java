@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import searchengine.dto.responce.*;
+import searchengine.dto.response.*;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.services.IndexingService;
 import searchengine.services.StatisticsService;
