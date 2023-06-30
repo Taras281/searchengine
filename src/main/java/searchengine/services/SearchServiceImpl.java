@@ -35,6 +35,8 @@ public class SearchServiceImpl implements SearchService {
     SiteRepository siteRepository;
     @Autowired
     Logger logger;
+    private ArrayList<Map.Entry<Page, float[]>> resultSearch;
+    private String oldQuery="";
     @Override
     public ResponseEntity getStatistics(String query, String site, String limit, String offset){
         this.setLimit(Integer.parseInt(limit));
@@ -52,7 +54,10 @@ public class SearchServiceImpl implements SearchService {
         searcher.setLimit(limit);
         searcher.setOffset(offset);
         searcher.setSite(site);
-        ArrayList<Map.Entry<Page, float[]>> resultSearch = searcher.vorker(query);
+        if(!oldQuery.equals(query)){
+            resultSearch = searcher.vorker(query);
+            oldQuery=query;
+        }
         if(resultSearch==null){
             return getSimpleResponce(false, getEmptyData(), "результаты не найдены" );
         }
@@ -167,14 +172,14 @@ public class SearchServiceImpl implements SearchService {
         List<String> sentenceByWord = getWords(resultSentence);
         List<List<String>> sentenceByLemma = getLemsFromText(sentenceByWord);
         StringBuffer sb = new StringBuffer();
-        for(int wordId=0; wordId<sentenceByLemma.size();wordId++){
-                if(isAnyContains(sentenceByLemma.get(wordId), query)){
+        for(int lemmaId=0; lemmaId<sentenceByLemma.size();lemmaId++){
+                if(isAnyContains(sentenceByLemma.get(lemmaId), query)){
                     sb.append("<b>");
-                    sb.append(sentenceByWord.get(wordId));
+                    sb.append(sentenceByWord.get(lemmaId));
                     sb.append("</b>");
                 }
                 else{
-                    sb.append(sentenceByWord.get(wordId));
+                    sb.append(sentenceByWord.get(lemmaId));
                 }
                 sb.append(" ");
         }

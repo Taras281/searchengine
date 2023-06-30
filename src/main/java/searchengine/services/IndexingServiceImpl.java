@@ -148,17 +148,17 @@ public class IndexingServiceImpl implements IndexingService {
         searchengine.model.Site site = page.getSite();
         String content = page.getContent();
         HashMap<String, Integer> lemmsFromPage = lemmatizator.getLemmsInPage(content);
-        List<Lemma> lemmaFromBase = getLemmsFromBase(lemmsFromPage);
-        HashMap<String, Integer> nameLemmaNotYetWriteBase = getLemmsNotYetWriteBase(lemmsFromPage, lemmaFromBase);
+        List<Lemma> lemmaForBase = getLemmsFromBase(lemmsFromPage);
+        HashMap<String, Integer> nameLemmaNotYetWriteBase = getLemmsNotYetWriteBase(lemmsFromPage, lemmaForBase);
         List<Lemma> lemmaNotYetWriteBase = getListLemmsForSaveBase(nameLemmaNotYetWriteBase, site);
-        lemmaFromBase.addAll(lemmaNotYetWriteBase);
-        List<Index> indexFromBase = getIndex(lemmaFromBase, lemmsFromPage, page);
-        lemmaRepository.saveAll(lemmaFromBase);
+        lemmaForBase.addAll(lemmaNotYetWriteBase);
+        List<Index> indexFromBase = getIndex(lemmaForBase, lemmsFromPage, page);
+        lemmaRepository.saveAll(lemmaForBase);
         indexRepository.saveAll(indexFromBase);
     }
-    private List<Index> getIndex(List<Lemma> lemmaFromBase, HashMap<String, Integer> lemmsFromPage, Page page) {
+    private List<Index> getIndex(List<Lemma> lemmaForBase, HashMap<String, Integer> lemmsFromPage, Page page) {
         List<Index> indexList = new ArrayList<>();
-        for(Lemma lemma: lemmaFromBase){
+        for(Lemma lemma: lemmaForBase){
             int rank = lemmsFromPage.get(lemma.getLemma());
             indexList.add(getIndex(lemma, page, rank));
         }

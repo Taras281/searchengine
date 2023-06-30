@@ -1,4 +1,4 @@
-package searchengine.controllers;
+package searchengine.services.controllers;
 
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;

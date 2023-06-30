@@ -25,7 +25,6 @@ public class StatisticsServiceImpl implements StatisticsService {
     private PageRepository pageRepository;
     @Autowired
     private LemmaRepository lemmaRepository;
-    private String myErrorStatus = "-111";
     private final SitesList sites;
     @Override
     public StatisticsResponse getStatistics() {
