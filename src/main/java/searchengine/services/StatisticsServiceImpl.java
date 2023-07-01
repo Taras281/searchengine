@@ -41,35 +41,43 @@ public class StatisticsServiceImpl implements StatisticsService {
     private StatisticsData getStatisticsData(List<Site> sitesList, TotalStatistics total) {
         StatisticsData statisticsData = new StatisticsData();
         List<DetailedStatisticsItem> detailed = new ArrayList<>();
-        for (int i = 0; i < sitesList.size(); i++) {
-            Site site = sitesList.get(i);
-            DetailedStatisticsItem item = new DetailedStatisticsItem();
-            item.setName(site.getName());
-            item.setUrl(site.getUrl());
-            List<searchengine.model.Site> siteModelList = siteRepository.findByName(sitesList.get(i).getName());
-            if(siteModelList.size()>1){
+        for (Site site : sitesList) {
+            List<searchengine.model.Site> siteModelList = siteRepository.findByName(site.getName());
+            if (siteModelList.size() > 1) {
                 return getErrorBaseTableSite("База вернула не однозначный ответ(список сайтов) позовите системного администратора", StatusEnum.FAILED);
             }
             searchengine.model.Site siteModel;
-            try{
-                 siteModel = siteModelList.get(0);
-            }
-            catch (IndexOutOfBoundsException ibe){
+            try {
+                siteModel = siteModelList.get(0);
+            } catch (IndexOutOfBoundsException ibe) {
                 return getErrorBaseTableSite("Таблица  site  еще не заполнена", StatusEnum.FAILED);
             }
-            if(siteModel==null){continue;}
-            int pages = pageRepository.countBySite(siteModel);
-            if(pages>0){
-                int numLemms = lemmaRepository.countBySite(siteModel);
-                setParametrsItem(item, pages, numLemms, siteModel);
-                total.setPages(total.getPages() + pages);
-                total.setLemmas(total.getLemmas() + numLemms);
-                detailed.add(item);
-            }}
+            if (siteModel == null) {
+                continue;
+            }
+            detailed.addAll(addDetailedAndTotalStatistics(site, siteModel, total));
+        }
         statisticsData.setTotal(total);
         statisticsData.setDetailed(detailed);
         return statisticsData;
     }
+
+    private List<DetailedStatisticsItem> addDetailedAndTotalStatistics(Site site, searchengine.model.Site siteModel, TotalStatistics total) {
+        List<DetailedStatisticsItem> detailed = new ArrayList<>();
+        DetailedStatisticsItem item = new DetailedStatisticsItem();
+        item.setName(site.getName());
+        item.setUrl(site.getUrl());
+        int pages = pageRepository.countBySite(siteModel);
+        if(pages>0){
+            int numLemms = lemmaRepository.countBySite(siteModel);
+            setParametrsItem(item, pages, numLemms, siteModel);
+            total.setPages(total.getPages() + pages);
+            total.setLemmas(total.getLemmas() + numLemms);
+            detailed.add(item);
+        }
+        return detailed;
+    }
+
     private void setParametrsItem(DetailedStatisticsItem item, int pages, int lemmas, searchengine.model.Site  siteModel) {
         item.setPages(pages);
         item.setLemmas(lemmas);

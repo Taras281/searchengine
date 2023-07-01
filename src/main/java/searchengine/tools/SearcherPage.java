@@ -8,16 +8,14 @@ import searchengine.model.Lemma;
 import searchengine.model.Page;
 import searchengine.repository.IndexRepository;
 import searchengine.repository.LemmaRepository;
-import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
 @Data
-public class Searcher {
+public class SearcherPage {
     private String  query;
     private String  site;
     private int  offset;
@@ -36,52 +34,52 @@ public class Searcher {
         return setLemmQuery;
     }
 
-    public  ArrayList<Map.Entry<Page, float[]>> vorker(String query){
+    public  ArrayList<Map.Entry<Page, float[]>> getPage(String query){
        siteId = site.equals("-1")?-1:siteRepository.findByUrl(site).getId();
        setLemmQuery = getQueryLemma(query.trim());
        List<Lemma> listLemmaFromBase = getLemmaFromBase(setLemmQuery);
-       if (excessWordQuery(setLemmQuery, listLemmaFromBase)!=null){
-           return excessWordQuery(setLemmQuery, listLemmaFromBase);
+       if (missingWordQueryInBase(setLemmQuery, listLemmaFromBase)!=null){
+           return missingWordQueryInBase(setLemmQuery, listLemmaFromBase);
        }
        if(listLemmaFromBase.size()<1){
            return null;
        }
-       Collections.sort(listLemmaFromBase, new MyComparator());
+       listLemmaFromBase.sort(new MyComparator());
        List<Lemma> reduseList = reduseList(listLemmaFromBase, 2);
        List<Page>  listPage = getPage(reduseList, siteId);
        if (listPage.size()<1){
            return null;
        }
        HashMap<Page, float[]> relevantion = getRelevantion(listPage, setLemmQuery);
-       ArrayList<Map.Entry<Page, float[]>> relevantionSorted = sort(relevantion);
+       ArrayList<Map.Entry<Page, float[]>> relevantionSorted = sortRelevantion(relevantion);
        return relevantionSorted;
     }
 
-    private ArrayList<Map.Entry<Page, float[]>> excessWordQuery(Set<String> setLemmQuery, List<Lemma> listLemmaFromBase) {
+    private ArrayList<Map.Entry<Page, float[]>> missingWordQueryInBase(Set<String> setLemmQuery, List<Lemma> listLemmaFromBase) {
             StringBuilder diferense = new StringBuilder();
-            List<String> lemms = listLemmaFromBase.stream().map(lemma -> lemma.getLemma()).collect(Collectors.toList());
-            for(String word: setLemmQuery){
-                if(!lemms.contains(word)){
-                    diferense.append(word);
+            List<String> lemmsFromBase = listLemmaFromBase.stream().map(lemma -> lemma.getLemma()).collect(Collectors.toList());
+            for(String wordFromQuery: setLemmQuery){
+                if(!lemmsFromBase.contains(wordFromQuery)){
+                    diferense.append(wordFromQuery);
                     diferense.append(", ");
                 }
             }
             if (diferense.toString().length()>1){
-            ArrayList<Map.Entry<Page, float[]>> dontContain = new ArrayList<>();
-            Page p = new Page();
-            float[] f = new float[1];
-            p.setPath(diferense.toString());
-            p.setCode(-1);
+            ArrayList<Map.Entry<Page, float[]>> result = new ArrayList<>();
+            Page page = new Page();
+            float[] rolevant = new float[1];
+            page.setPath(diferense.toString());
+            page.setCode(-1);
             HashMap<Page, float[]> res = new HashMap<>();
-            res.put(p, f);
-            dontContain.add(res.entrySet().stream().findAny().get());
-            return dontContain;
+            res.put(page, rolevant);
+            result.add(res.entrySet().stream().findAny().get());
+            return result;
         }
         else return null;
     }
-    private ArrayList<Map.Entry<Page, float[]>> sort(HashMap<Page, float[]> relevantion) {
+    private ArrayList<Map.Entry<Page, float[]>> sortRelevantion(HashMap<Page, float[]> relevantion) {
         ArrayList<Map.Entry<Page, float[]>> result = new ArrayList<>();
-        while (0<relevantion.size()){
+        while (relevantion.size()>0){
             Float maxRel = relevantion.entrySet().stream().map(e->e.getValue()[0]).max(Float::compare).get();
             List<Map.Entry<Page, float[]>> entryMax= relevantion.entrySet().stream().filter(e->e.getValue()[0]==maxRel).collect(Collectors.toList());
             relevantion.remove(entryMax.get(0).getKey());
@@ -99,7 +97,7 @@ public class Searcher {
                                                      .mapToDouble(index -> index.getRank()).sum();
             rankAbsList.add(sumRankPage);
         }
-        Integer maxRank = rankAbsList.stream().max(Integer::compare).get();
+        int maxRank = rankAbsList.stream().max(Integer::compare).get();
         for(int i=0;i<listPage.size();i++){
             float rankRelativ = Float.valueOf(rankAbsList.get(i))/Float.valueOf(maxRank);
             result.put(listPage.get(i), new float[]{rankAbsList.get(i), rankRelativ});
@@ -109,7 +107,7 @@ public class Searcher {
     }
     private List<Page> getPage(List<Lemma> reduseList, long siteId) {
         List<Index> indexFirstLemma = indexRepository.findAllByLemmaId(reduseList.get(0));
-        List<Page> listPageFirstLemma=new ArrayList<>();
+        List<Page> listPageFirstLemma = new ArrayList<>();
         if (siteId!=-1){
             listPageFirstLemma = indexFirstLemma.stream().map(index -> index.getPageId()).
                     filter(page -> page.getSite().getId()==siteId).collect(Collectors.toList());
@@ -127,7 +125,7 @@ public class Searcher {
             }
         }
         List<Page> pages =  listAllIndexPages.stream().map(index -> index.getPageId()).collect(Collectors.toList());
-        pages= removeDoublePage(pages);
+        pages = removeDoublePage(pages);
         return  pages;
     }
 
@@ -158,36 +156,45 @@ public class Searcher {
     public Set<String> getQueryLemma(String query){
         query=query.replaceAll("ё","е");
         String[] arr = lemmatizator.getWordsFromText(query);
-        Set<String> list= new HashSet<>();
+        HashMap<String,String>  normalForms = new HashMap<>();
         for(String s: arr){
-            String st = lemmatizator.luceneMorph.getMorphInfo(s).toString();
-            List<String> normalForms = lemmatizator.luceneMorph.getNormalForms(s);
-            String[] array = st.split("\\|", 2);
-            if(array[0].substring(1).length()<2){
-                continue;
-            }
-            if(array[1].contains(" С ")||array[1].contains(" Г ")||array[1].contains(" П ")||
-                    array[1].contains(" ПРИЧАСТИЕ ")||array[1].contains("КР_ПРИЧАСТИЕ")||
-                    array[1].contains("ИНФИНИТИВ")||array[1].contains("КР_ПРИЛ")||array[1].contains("ПРЕДК")){
-               list.addAll(normalForms);
-            }
+            List<String> res = lemmatizator.luceneMorph.getMorphInfo(s);
+            HashMap<String, String> wordType = getWordType(res);
+            normalForms.putAll(getLemmAfterFiltr(wordType));
         }
-        list = removeDouble(list);
+        Set<String> list = new HashSet<>(normalForms.keySet());
         return list;
     }
-    public List<Lemma> getLemmaFromBase(Set<String> listQueryWord){
-        List<Lemma> listLemma = lemmaRepository.findAllByLemmaIn(listQueryWord);
-        return listLemma;
-    }
 
-    private Set<String> removeDouble(Set<String> list) {
-        Set<String> result=new HashSet<>();
-        for(String str:list){
-            if (!result.contains(str)){
-                result.add(str);
+    private HashMap<String, String>  getLemmAfterFiltr(HashMap<String, String> wordType) {
+        HashMap<String,String> result = new HashMap<>();
+        for(Map.Entry<String, String> entry: wordType.entrySet()){
+            if(filterTypeWord(entry.getValue())){
+                result.put(entry.getKey(), entry.getValue());
             }
         }
         return result;
+    }
+
+    private boolean filterTypeWord(String value) {
+        return value.contains("С") || value.contains("Г") || value.contains("П") ||
+                value.contains("ПРИЧАСТИЕ") || value.contains("КР_ПРИЧАСТИЕ") ||
+                value.contains("ИНФИНИТИВ") || value.contains("КР_ПРИЛ") || value.contains("ПРЕДК");
+    }
+
+    private HashMap<String, String> getWordType(List<String> res) {
+        HashMap<String, String> wordType= new HashMap<>();
+        for(String lemmaInfo: res){
+            String[] wordAndInfo = lemmaInfo.split("\\|");
+            String typeWord = wordAndInfo[1].split(" ")[1];
+            wordType.put(wordAndInfo[0],typeWord);
+        }
+        return wordType;
+    }
+
+    public List<Lemma> getLemmaFromBase(Set<String> listQueryWord){
+        List<Lemma> listLemma = lemmaRepository.findAllByLemmaIn(listQueryWord);
+        return listLemma;
     }
 
     private class MyComparator implements Comparator<Lemma> {
