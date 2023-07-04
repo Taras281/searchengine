@@ -59,7 +59,7 @@ public class IndexingServiceImpl implements IndexingService {
         if(siteRepository.findByStatus(StatusEnum.INDEXING).size()<1){
             siteIdListForCheckStopped = new HashSet<>();
             pages = new HashSet<>();
-            startIndexing();
+            createTasksForIndexing();
             return new ResponseEntity<>(createIndexingResponseOk(), HttpStatus.OK);
         }
         return  new ResponseEntity<>(createResponseNotOk("Индексация уже запущена"), HttpStatus.OK);
@@ -80,9 +80,7 @@ public class IndexingServiceImpl implements IndexingService {
             }
             return new ResponseEntity<>(createIndexingResponseOk(), HttpStatus.OK);
         }
-        else {
             return new ResponseEntity<>(createResponseNotOk("Индексация ещё не запущена"), HttpStatus.OK);
-        }
     }
     public ResponseEntity<IndexingResponse> getResponseIndexing(String uri) {
         if(!validUrl(uri)){
@@ -95,10 +93,10 @@ public class IndexingServiceImpl implements IndexingService {
             savePageBase(page);
             return new ResponseEntity<>(createIndexingResponseOk(), HttpStatus.OK);
     }
-    private void startIndexing() {
+    private void createTasksForIndexing() {
         forkJoinPool =  new ForkJoinPool();
         listTask = new ArrayList<>();
-        deleteAll();
+        siteRepository.deleteAll();
         for(Site site: sitesList.getSites()) {
             String url = site.getUrl();
             searchengine.model.Site siteForBase = returnModelSite(StatusEnum.INDEXING,  "", url, site.getName());
@@ -109,21 +107,21 @@ public class IndexingServiceImpl implements IndexingService {
             parserForkJoinAction = new ParserForkJoinAction(siteFromBase,"",this, new HashSet<>(), userAgent);
             listTask.add(parserForkJoinAction);
         }
+        startIndexing(listTask);
+    }
+
+    private void startIndexing(ArrayList<ParserForkJoinAction> listTask) {
         for (ParserForkJoinAction pfj: listTask){
             new Thread(()->{
                 forkJoinPool.invoke(pfj);
                 if(!siteIdListForCheckStopped.contains(pfj.getSite().getId()))
-                {
-                    searchengine.model.Site site = pfj.getSite();
+                {   searchengine.model.Site site = pfj.getSite();
                     site.setStatus(StatusEnum.INDEXED);
                     siteRepository.save(site);}
             }).start();
         }
     }
 
-    private void deleteAll(){
-        siteRepository.deleteAll();
-    }
     @Override
     public void addBase(Page newPage) {
         synchronized (pageRepository){
@@ -140,21 +138,21 @@ public class IndexingServiceImpl implements IndexingService {
         }
         synchronized (lemmaRepository){
             synchronized (indexRepository){
-                writeBaseLemmsTableIndex(page);
+                writeBaseLemmsAndIndex(page);
             }
         }
     }
-    public void writeBaseLemmsTableIndex(Page page) {
+    public void writeBaseLemmsAndIndex(Page page) {
         searchengine.model.Site site = page.getSite();
         String content = page.getContent();
         HashMap<String, Integer> lemmsFromPage = lemmatizator.getLemmsInPage(content);
-        List<Lemma> lemmaForBase = getLemmsFromBase(lemmsFromPage);
+        List<Lemma> lemmaForBase = getLemmsFromBaseAndIncrementFrequency(lemmsFromPage);
         HashMap<String, Integer> nameLemmaNotYetWriteBase = getLemmsNotYetWriteBase(lemmsFromPage, lemmaForBase);
         List<Lemma> lemmaNotYetWriteBase = getListLemmsForSaveBase(nameLemmaNotYetWriteBase, site);
         lemmaForBase.addAll(lemmaNotYetWriteBase);
-        List<Index> indexFromBase = getIndex(lemmaForBase, lemmsFromPage, page);
+        List<Index> indexForBase = getIndex(lemmaForBase, lemmsFromPage, page);
         lemmaRepository.saveAll(lemmaForBase);
-        indexRepository.saveAll(indexFromBase);
+        indexRepository.saveAll(indexForBase);
     }
     private List<Index> getIndex(List<Lemma> lemmaForBase, HashMap<String, Integer> lemmsFromPage, Page page) {
         List<Index> indexList = new ArrayList<>();
@@ -171,13 +169,13 @@ public class IndexingServiceImpl implements IndexingService {
         index.setPageId(page);
         return  index;
     }
-    private synchronized List<Lemma> getLemmsFromBase(HashMap<String, Integer> lemmsFromPage) {
+    private synchronized List<Lemma> getLemmsFromBaseAndIncrementFrequency(HashMap<String, Integer> lemmsFromPage) {
         Set<String> keys=lemmsFromPage.keySet();
         List<Lemma> list= lemmaRepository.findAllByLemmaIn(keys);
         for(Lemma lemma:list){
             lemma.setFrequency(lemma.getFrequency()+1);
         }
-        list = deleteExcessLemma(list, keys);
+        //list = deleteExcessLemma(list, keys);
         return  list;
     }
     private List<Lemma> deleteExcessLemma(List<Lemma> list, Set<String> keys) {
@@ -245,7 +243,8 @@ public class IndexingServiceImpl implements IndexingService {
         return site;
     }
     public  boolean validUrl(String uri) {
-        return  !uri.matches(".*((\\.jpg)|(\\.jpeg)|(\\.pdf)|(\\.PDF)|(\\.JPEG)|(\\.JPG)|(\\.doc)|(\\.xml)" +
+        return  !uri.matches(".*((\\.jpg)|(\\.jpeg)|(\\.png)|(\\.PNG)|(\\.pdf)|(\\.PDF)|(\\.JPEG)|(\\.JPG)|(\\.doc)|(\\.docx)" +
+                                   "|(\\.xml)|(\\.xls)|(\\.xlsx)|(\\.eps)" +
                                    "|(\\.mp3)|(\\.MP3)|(\\.mp4)|(\\.MP4)|(\\.AVI)|(\\.avi)|(\\.wav)|(\\.WAV)|((/.*#.*)$))");
     }
     private Page getPageFromUri(String uri) {

@@ -18,6 +18,7 @@ import searchengine.repository.SiteRepository;
 import searchengine.tools.Lemmatizator;
 import searchengine.tools.SearcherPage;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -38,6 +39,8 @@ public class SearchServiceImpl implements SearchService {
     private ArrayList<Map.Entry<Page, float[]>> resultSearch;
     private String oldQuery="";
     private String oldSite="";
+    private int oldOffset=-1;
+    private LocalDateTime labelTime=LocalDateTime.now();
     @Override
     public ResponseEntity getStatistics(String query, String site, String limit, String offset){
         this.setLimit(Integer.parseInt(limit));
@@ -63,14 +66,22 @@ public class SearchServiceImpl implements SearchService {
     }
 
     private void recreatSeacher(String query) {
-        if(!oldQuery.equals(query)||!oldSite.equals(site)){
-            searcherPage.setLimit(limit);
-            searcherPage.setOffset(offset);
-            searcherPage.setSite(site);
+        searcherPage.setLimit(limit);
+        searcherPage.setOffset(offset);
+        searcherPage.setSite(site);
+        if(!oldSite.equals(site)||!oldQuery.equals(query)||outdated()){
             resultSearch = searcherPage.getPage(query);
             oldQuery=query;
             oldSite=site;
         }
+    }
+
+    private boolean outdated() {
+       if(LocalDateTime.now().isAfter(labelTime.plusSeconds(10))){
+           labelTime=LocalDateTime.now();
+           return true;
+       }
+       return false;
     }
 
     private SearchResponce getResponse(ArrayList<Map.Entry<Page, float[]>> resultSearch) {
@@ -129,8 +140,8 @@ public class SearchServiceImpl implements SearchService {
         ArrayList<String> sentences = getSentence(content);
         ArrayList<ArrayList<String>> sentenceByWord = getSentenceByWord(sentences);
         ArrayList<ArrayList<List<String>>> sentenceByLemm = getSentenceByLemm(sentenceByWord);
-        HashMap<String, Integer> numberConcidienceSentenceQuery = getConcidient(queryLemms, sentences, sentenceByLemm);
-        String resultSentence = getSentenceByMaxConcidience(numberConcidienceSentenceQuery);
+        HashMap<String, Integer> numberConcidienceSentenceQuery = getConcidentLemmInQueryAndSentence(queryLemms, sentences, sentenceByLemm);
+        String resultSentence = getSentenceByMaxConcidence(numberConcidienceSentenceQuery);
         resultSentence = reduseSentence(resultSentence, queryLemms);
         String result = getSentenceAfterSelectionWord(resultSentence, queryLemms);
         return  result;
@@ -138,10 +149,10 @@ public class SearchServiceImpl implements SearchService {
 
     private String reduseSentence(String resultSentence, List<String> queryLemm) {
         List<String> sentenceByWord = getWords(resultSentence);
-        return sentenceByWord.size() < 31 ? resultSentence : cutOffSentence(sentenceByWord, queryLemm);
-    }
-    private String cutOffSentence(List<String> sentenceByWord, List<String> queryLemm) {
-        List<List<String>> sentenceByLemm = getLemsFromText(sentenceByWord);
+        if(sentenceByWord.size() < 31){
+            return resultSentence;
+        }
+        List<List<String>> sentenceByLemm = getLemmsFromText(sentenceByWord);
         int indexMeet = getFirstMeetLemmaInSentence(sentenceByLemm, queryLemm);
         int[] startEnd = getStartEnd(indexMeet, sentenceByWord);
         StringBuffer stringBuffer = new StringBuffer();
@@ -181,7 +192,7 @@ public class SearchServiceImpl implements SearchService {
 
     private String getSentenceAfterSelectionWord(String resultSentence, List<String> query){
         List<String> sentenceByWord = getWords(resultSentence);
-        List<List<String>> sentenceByLemma = getLemsFromText(sentenceByWord);
+        List<List<String>> sentenceByLemma = getLemmsFromText(sentenceByWord);
         StringBuffer sb = new StringBuffer();
         for(int lemmaId=0; lemmaId<sentenceByLemma.size();lemmaId++){
                 if(isAnyContains(sentenceByLemma.get(lemmaId), query)){
@@ -199,7 +210,8 @@ public class SearchServiceImpl implements SearchService {
 
     private boolean isAnyContains(List<String> sentence, List<String> query) {
         for(String s:sentence){
-            return query.stream().anyMatch(lemma->lemma.equals(s));
+            if (query.contains(s)){
+            return true;}
         }
         return false;
     }
@@ -225,16 +237,16 @@ public class SearchServiceImpl implements SearchService {
     private ArrayList<ArrayList<List<String>>> getSentenceByLemm(ArrayList<ArrayList<String>> sentenceByWord ) {
         ArrayList<ArrayList<List<String>>> sentenceByLemm = new ArrayList<>();
         for (ArrayList<String> strings : sentenceByWord) {
-            sentenceByLemm.add(getLemsFromText(strings));
+            sentenceByLemm.add(getLemmsFromText(strings));
         }
         return sentenceByLemm;
     }
 
-    private HashMap<String, Integer> getConcidient(List<String> queryLemms, ArrayList<String> sentences, ArrayList<ArrayList<List<String>>> sentenceByLemm) {
+    private HashMap<String, Integer> getConcidentLemmInQueryAndSentence(List<String> queryLemms, ArrayList<String> sentences, ArrayList<ArrayList<List<String>>> sentenceByLemm) {
         HashMap<String, Integer> numberConcidienceSentenceQuery = new HashMap<>();
         for(int numSentence=0; numSentence<sentenceByLemm.size(); numSentence++){
             int count = 0;
-            for( int numWord=0; numWord<sentenceByLemm.get(numSentence).size(); numWord++){
+            for(int numWord=0; numWord<sentenceByLemm.get(numSentence).size(); numWord++){
                 count += (int) sentenceByLemm.get(numSentence).get(numWord).stream().filter(lemma->queryLemms.contains(lemma)).count();
             }
             numberConcidienceSentenceQuery.put( sentences.get(numSentence), count);
@@ -242,10 +254,10 @@ public class SearchServiceImpl implements SearchService {
         return numberConcidienceSentenceQuery;
     }
 
-    private String getSentenceByMaxConcidience(HashMap<String, Integer> numberConcidienceSentenceQuery){
+    private String getSentenceByMaxConcidence(HashMap<String, Integer> numberConcidenceSentenceByQuery){
         int maxFreq=0;
         String result="";
-        for(Map.Entry<String, Integer> sentence: numberConcidienceSentenceQuery.entrySet()){
+        for(Map.Entry<String, Integer> sentence: numberConcidenceSentenceByQuery.entrySet()){
            if(sentence.getValue()>maxFreq){
                maxFreq = sentence.getValue();
                result=sentence.getKey();
@@ -254,7 +266,7 @@ public class SearchServiceImpl implements SearchService {
         return  result;
     }
 
-    private ArrayList<List<String>> getLemsFromText(List<String> arrWords) {
+    private ArrayList<List<String>> getLemmsFromText(List<String> arrWords) {
         ArrayList<List<String>> lemmsFromText = new ArrayList<>();
         for (String word : arrWords) {
             try {

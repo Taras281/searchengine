@@ -39,9 +39,9 @@ public class ApiController {
     }
     @GetMapping("/search")
     public ResponseEntity<IndexingResponse> search(@RequestParam(value = "query", required = false) String  query,
-                                                   @RequestParam(value = "site", required = false, defaultValue = "-1") String  site,
+                                                   @RequestParam(value = "site", required = false, defaultValue = "-101") String  site,
                                                    @RequestParam(value = "offset", required = false, defaultValue = "0") String  offset,
-                                                   @RequestParam(value = "limit", required = false, defaultValue = "10000") String  limit){
+                                                   @RequestParam(value = "limit", required = false, defaultValue = "20") String  limit){
         query.trim();
     return  searchStatistic.getStatistics(query, site, limit, offset);
     }

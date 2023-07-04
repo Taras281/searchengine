@@ -35,7 +35,7 @@ public class SearcherPage {
     }
 
     public  ArrayList<Map.Entry<Page, float[]>> getPage(String query){
-       siteId = site.equals("-1")?-1:siteRepository.findByUrl(site).getId();
+       siteId = site.equals("-101")?-101:siteRepository.findByUrl(site).getId();
        setLemmQuery = getQueryLemma(query.trim());
        List<Lemma> listLemmaFromBase = getLemmaFromBase(setLemmQuery);
        if (missingWordQueryInBase(setLemmQuery, listLemmaFromBase)!=null){
@@ -108,7 +108,7 @@ public class SearcherPage {
     private List<Page> getPage(List<Lemma> reduseList, long siteId) {
         List<Index> indexFirstLemma = indexRepository.findAllByLemmaId(reduseList.get(0));
         List<Page> listPageFirstLemma = new ArrayList<>();
-        if (siteId!=-1){
+        if (siteId!=-101){
             listPageFirstLemma = indexFirstLemma.stream().map(index -> index.getPageId()).
                     filter(page -> page.getSite().getId()==siteId).collect(Collectors.toList());
         }
@@ -177,9 +177,10 @@ public class SearcherPage {
     }
 
     private boolean filterTypeWord(String value) {
-        return value.contains("С") || value.contains("Г") || value.contains("П") ||
-                value.contains("ПРИЧАСТИЕ") || value.contains("КР_ПРИЧАСТИЕ") ||
-                value.contains("ИНФИНИТИВ") || value.contains("КР_ПРИЛ") || value.contains("ПРЕДК");
+        return  value.equals("С") || value.equals("Г") || value.equals("П") ||
+                value.equals("ПРИЧАСТИЕ") || value.equals("КР_ПРИЧАСТИЕ") ||
+                value.equals("ИНФИНИТИВ") || value.equals("КР_ПРИЛ") ||
+                value.equals("ПРЕДК")|| value.equals("Н");
     }
 
     private HashMap<String, String> getWordType(List<String> res) {
