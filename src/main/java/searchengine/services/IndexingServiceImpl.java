@@ -39,7 +39,7 @@ public class IndexingServiceImpl implements IndexingService {
     private ForkJoinPool forkJoinPool;
     private ParserForkJoinAction parserForkJoinAction;
     private ArrayList<ParserForkJoinAction> listTask;
-    private Set<Long> siteIdListForCheckStopped;
+    private Set<Long> siteIdListForCheckStopped = new HashSet<>();
     private Set<Page> pages;
     private Lemmatizator lemmatizator;
     public IndexingServiceImpl(SiteRepository siteRepository, PageRepository pageReposytory,
@@ -57,7 +57,6 @@ public class IndexingServiceImpl implements IndexingService {
     }
     public ResponseEntity<IndexingResponse> getStartResponse(){
         if(siteRepository.findByStatus(StatusEnum.INDEXING).size()<1){
-            siteIdListForCheckStopped = new HashSet<>();
             pages = new HashSet<>();
             createTasksForIndexing();
             return new ResponseEntity<>(createIndexingResponseOk(), HttpStatus.OK);
@@ -115,7 +114,7 @@ public class IndexingServiceImpl implements IndexingService {
             new Thread(()->{
                 forkJoinPool.invoke(pfj);
                 if(!siteIdListForCheckStopped.contains(pfj.getSite().getId()))
-                {   searchengine.model.Site site = pfj.getSite();
+                   {searchengine.model.Site site = pfj.getSite();
                     site.setStatus(StatusEnum.INDEXED);
                     siteRepository.save(site);}
             }).start();
@@ -175,14 +174,9 @@ public class IndexingServiceImpl implements IndexingService {
         for(Lemma lemma:list){
             lemma.setFrequency(lemma.getFrequency()+1);
         }
-        //list = deleteExcessLemma(list, keys);
         return  list;
     }
-    private List<Lemma> deleteExcessLemma(List<Lemma> list, Set<String> keys) {
-        List<Lemma> result = new ArrayList<>();
-        result = list.stream().filter(lemma -> keys.contains(lemma.getLemma())).collect(Collectors.toList());
-        return result;
-    }
+
     private List<Lemma> getListLemmsForSaveBase(HashMap<String, Integer> nameLemmaNoYetWriteBase, searchengine.model.Site site) {
         List<Lemma> result = new ArrayList<>();
         for(Map.Entry<String, Integer> entryLemma: nameLemmaNoYetWriteBase.entrySet()){
@@ -292,7 +286,6 @@ public class IndexingServiceImpl implements IndexingService {
             saveError(site, "eror parse code 418 url " + site.getUrl().concat(urlPage) + "  " + e.toString());
             }
         }
-
         return document;
     }
 }

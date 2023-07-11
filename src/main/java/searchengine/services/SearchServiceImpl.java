@@ -55,7 +55,7 @@ public class SearchServiceImpl implements SearchService {
         if(query.equals("")){
             return getSimpleResponce(false, getEmptyData(), "Задан пустой поисковый запрос, или запрос содержит латинские или просто символы");
         }
-        recreatSeacher(query);
+        getPages(query);
         if(resultSearch==null){
             return getSimpleResponce(false, getEmptyData(), "результаты не найдены" );
         }
@@ -65,7 +65,7 @@ public class SearchServiceImpl implements SearchService {
         return getResponse(resultSearch);
     }
 
-    private void recreatSeacher(String query) {
+    private void getPages(String query) {
         searcherPage.setLimit(limit);
         searcherPage.setOffset(offset);
         searcherPage.setSite(site);
@@ -77,7 +77,7 @@ public class SearchServiceImpl implements SearchService {
     }
 
     private boolean outdated() {
-       if(LocalDateTime.now().isAfter(labelTime.plusSeconds(10))){
+       if(LocalDateTime.now().isAfter(labelTime.plusSeconds(60))){
            labelTime=LocalDateTime.now();
            return true;
        }
@@ -88,7 +88,7 @@ public class SearchServiceImpl implements SearchService {
         SearchResponce responce = new SearchResponce();
         responce.setResult(true);
         responce.setCount(resultSearch.size());
-        responce.setData(getDetailedStatistics(resultSearch));
+        responce.setData(getSnippets(resultSearch));
         return responce;
     }
     private SearchResponce getSimpleResponce(Boolean result, DetailedStatisticsSearch[] detailedStatisticsSearches, String error){
@@ -98,7 +98,7 @@ public class SearchServiceImpl implements SearchService {
         responce.setError(error);
         return  responce;
     }
-    private DetailedStatisticsSearch[] getDetailedStatistics(ArrayList<Map.Entry<Page,float[]>> resultSearch) {
+    private DetailedStatisticsSearch[] getSnippets(ArrayList<Map.Entry<Page,float[]>> resultSearch) {
         int start = offset>=resultSearch.size()?resultSearch.size()-1:offset;
         int dif = Math.abs(resultSearch.size()-start);
         int stop = Math.min(limit, dif);
@@ -116,12 +116,10 @@ public class SearchServiceImpl implements SearchService {
         }
         return detailedStatisticsSearches;
     }
-
     private String getText(String content) {
         String result = Jsoup.parse(content).body().text();
         return result;
     }
-
     private DetailedStatisticsSearch[] getEmptyData() {
         DetailedStatisticsSearch[] result = new DetailedStatisticsSearch[1];
         DetailedStatisticsSearch item = new DetailedStatisticsSearch();
@@ -134,7 +132,6 @@ public class SearchServiceImpl implements SearchService {
         result[0]=item;
         return result;
     }
-
     private String getSnippet(String content){
         List<String> queryLemms = new ArrayList<>(searcherPage.getSetLemmQuery());
         ArrayList<String> sentences = getSentence(content);
@@ -146,7 +143,6 @@ public class SearchServiceImpl implements SearchService {
         String result = getSentenceAfterSelectionWord(resultSentence, queryLemms);
         return  result;
     }
-
     private String reduseSentence(String resultSentence, List<String> queryLemm) {
         List<String> sentenceByWord = getWords(resultSentence);
         if(sentenceByWord.size() < 31){
@@ -242,14 +238,15 @@ public class SearchServiceImpl implements SearchService {
         return sentenceByLemm;
     }
 
-    private HashMap<String, Integer> getConcidentLemmInQueryAndSentence(List<String> queryLemms, ArrayList<String> sentences, ArrayList<ArrayList<List<String>>> sentenceByLemm) {
+    private HashMap<String, Integer> getConcidentLemmInQueryAndSentence(List<String> queryLemms, ArrayList<String> sentences,
+                                                                        ArrayList<ArrayList<List<String>>> sentenceByLemm) {
         HashMap<String, Integer> numberConcidienceSentenceQuery = new HashMap<>();
         for(int numSentence=0; numSentence<sentenceByLemm.size(); numSentence++){
             int count = 0;
             for(int numWord=0; numWord<sentenceByLemm.get(numSentence).size(); numWord++){
                 count += (int) sentenceByLemm.get(numSentence).get(numWord).stream().filter(lemma->queryLemms.contains(lemma)).count();
             }
-            numberConcidienceSentenceQuery.put( sentences.get(numSentence), count);
+            numberConcidienceSentenceQuery.put(sentences.get(numSentence), count);
         }
         return numberConcidienceSentenceQuery;
     }

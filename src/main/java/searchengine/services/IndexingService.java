@@ -28,4 +28,5 @@ public interface IndexingService {
     String remoovePrefix(Site site, String l);
 
     boolean validUrl(String concat);
+
 }

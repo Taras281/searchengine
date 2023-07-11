@@ -44,7 +44,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         for (Site site : sitesList) {
             List<searchengine.model.Site> siteModelList = siteRepository.findByName(site.getName());
             if (siteModelList.size() > 1) {
-                return getErrorBaseTableSite("База вернула не однозначный ответ(список сайтов) позовите системного администратора", StatusEnum.FAILED);
+                return getErrorBaseTableSite("Ошибка базы данных(не однозначный список сайтов)", StatusEnum.FAILED);
             }
             searchengine.model.Site siteModel;
             try {
